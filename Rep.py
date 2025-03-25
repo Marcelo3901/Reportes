@@ -4,7 +4,7 @@ import plotly.express as px
 import urllib.parse
 
 # URL base de la hoja de cálculo en Google Sheets (debe ser un enlace público CSV)
-BASE_URL = "https://docs.google.com/spreadsheets/d/1FjQ8XBDwDdrlJZsNkQ6YyaygkHLhpKmfLBv6wd3uluY/edit?usp=sharing"
+BASE_URL = "https://docs.google.com/spreadsheets/d/1FjQ8XBDwDdrlJZsNkQ6YyaygkHLhpKmfLBv6wd3uluY/gviz/tq?tqx=out:csv&sheet="
 
 # Nombres de hojas corregidos
 SHEETS = {
@@ -21,6 +21,8 @@ def cargar_datos(hoja_nombre):
         df = pd.read_csv(url, dtype=str)
         df = df.dropna(how='all')  # Eliminar filas completamente vacías
         df.columns = df.columns.str.strip()  # Limpiar nombres de columnas
+        df.columns = pd.io.parsers.ParserBase({})._maybe_dedup_names(df.columns)  # Eliminar duplicados en nombres de columnas
+        print(f"Columnas de {hoja_nombre}: {df.columns.tolist()}")  # Debugging
         if df.empty or df.shape[1] < 2 or all(df.columns.str.contains("Unnamed")):
             return pd.DataFrame()
         return df
@@ -49,6 +51,7 @@ def reporte_barriles(df):
     if not df.empty and df.shape[1] >= 8:
         df = df.iloc[:, [0, 1, 3, 5, 6, 7, 8, 9]]  # Selección de columnas específicas
         df.columns = ['A', 'B', 'D', 'F', 'G', 'H', 'I', 'J']  # Renombrar columnas por letras
+        df = df.loc[:, ~df.columns.duplicated()]  # Eliminar columnas duplicadas
         estados = df['G'].value_counts().to_dict()
         for estado, cantidad in estados.items():
             st.write(f"**{estado}:** {cantidad} barriles")
