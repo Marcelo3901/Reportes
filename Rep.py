@@ -18,6 +18,7 @@ SHEETS = {
 def cargar_datos(hoja_nombre):
     try:
         url = BASE_URL + urllib.parse.quote(SHEETS[hoja_nombre])
+        st.write(f"Intentando cargar datos desde: {url}")  # Ver URL para depuración
         df = pd.read_csv(url, dtype=str)
         df = df.dropna(how='all')  # Eliminar filas completamente vacías
         df.columns = df.columns.str.strip()  # Limpiar nombres de columnas
@@ -28,9 +29,11 @@ def cargar_datos(hoja_nombre):
         
         st.write(f"Columnas de {hoja_nombre}: {df.columns.tolist()}")  # Debugging
         if df.empty or df.shape[1] < 2 or all(df.columns.str.contains("Unnamed")):
+            st.error(f"La hoja {hoja_nombre} está vacía o no se pudo cargar correctamente.")
             return pd.DataFrame()
         return df
-    except Exception:
+    except Exception as e:
+        st.error(f"Error al cargar {hoja_nombre}: {str(e)}")
         return pd.DataFrame()
 
 # Cargar cada hoja de la base de datos
@@ -71,8 +74,4 @@ def reporte_barriles(df):
 
 # Interfaz principal de la aplicación
 st.title("📊 Reportes de la Cervecería")
-reporte_inventario_latas(df_latas)
 reporte_barriles(df_barriles)
-reporte_ventas_latas(df_ventas_latas)
-reporte_clientes(df_clientes)
-generar_alertas(df_barriles)
