@@ -18,14 +18,12 @@ SHEETS = {
 def cargar_datos(hoja_nombre):
     try:
         url = BASE_URL + urllib.parse.quote(SHEETS[hoja_nombre])
-        st.write(f"Cargando datos desde: {url}")  # Depuración
         df = pd.read_csv(url, dtype=str)
         df = df.dropna(how='all')  # Eliminar filas completamente vacías
         df.columns = df.columns.str.strip()  # Limpiar nombres de columnas
         if df.empty or df.shape[1] < 2 or all(df.columns.str.contains("Unnamed")):
             st.warning(f"No se encontraron datos en la hoja {hoja_nombre} o la hoja está vacía.")
             return pd.DataFrame()
-        st.success(f"Datos de {hoja_nombre} cargados correctamente.")
         return df
     except Exception as e:
         st.error(f"Error al cargar datos de {hoja_nombre}: {e}")
@@ -37,76 +35,39 @@ df_barriles = cargar_datos("DatosM")
 df_ventas_latas = cargar_datos("VLatas")
 df_clientes = cargar_datos("RClientes")
 
-# Reporte de inventario de latas
-def reporte_inventario_latas(df):
-    st.subheader("Inventario de Latas en Cuarto Frío")
-    if not df.empty and df.shape[1] >= 5:
-        df.columns = ['A', 'B', 'C', 'D', 'E']  # Renombrar columnas por letras
-        df['C'] = pd.to_numeric(df['C'], errors='coerce').fillna(0).astype(int)
-        st.dataframe(df)
-        fig = px.bar(df, x='B', y='C', color='D', title="Cantidad de Latas por Estilo y Lote")
-        st.plotly_chart(fig)
-    else:
-        st.warning("No hay datos de latas disponibles o faltan columnas esperadas.")
-
 # Reporte de barriles
 def reporte_barriles(df):
-    st.subheader("Estado de los Barriles")
+    st.subheader("Estado de los Barriles y Litros Totales")
     if not df.empty and df.shape[1] >= 8:
         df = df.iloc[:, [0, 1, 3, 5, 6, 7, 8, 9]]  # Selección de columnas específicas
-        df.columns = ['A', 'B', 'D', 'F', 'G', 'H', 'I', 'J']  # Renombrar columnas por letras
-        estados = df['G'].value_counts().to_dict()
-        for estado, cantidad in estados.items():
-            st.write(f"**{estado}:** {cantidad} barriles")
+        df.columns = ['Codigo', 'Estilo', 'Cliente', 'Estado', 'Responsable', 'Observaciones', 'Fecha', 'Dias']
         
-        fig = px.pie(df, names='G', title="Distribución de Barriles por Estado")
+        # Filtrar último estado de cada barril
+        df = df.sort_values(by=['Codigo', 'Fecha'], ascending=[True, False]).drop_duplicates(subset=['Codigo'], keep='first')
+        
+        # Excluir barriles despachados del inventario
+        df = df[df['Estado'] != 'Despachado']
+        
+        # Filtrar barriles en "Lleno en bodega"
+        df = df[df['Estado'] == 'Lleno en bodega']
+        
+        # Calcular litros según el código del barril
+        df['Litros'] = df['Codigo'].astype(str).str[:2].astype(int)
+        
+        # Litros por estilo
+        litros_por_estilo = df.groupby('Estilo')['Litros'].sum().reset_index()
+        st.subheader("Litros por Estilo (Solo Lleno en Bodega)")
+        st.dataframe(litros_por_estilo)
+        
+        # Litros totales
+        litros_totales = df['Litros'].sum()
+        st.write(f"**Litros Totales en Bodega:** {litros_totales} L")
+        
+        fig = px.pie(df, names='Estado', title="Distribución de Barriles en Bodega")
         st.plotly_chart(fig)
     else:
         st.warning("No hay datos de barriles disponibles o falta la columna correspondiente.")
 
-# Reporte de ventas de latas
-def reporte_ventas_latas(df):
-    st.subheader("Ventas y Despachos de Latas")
-    if not df.empty and df.shape[1] >= 6:
-        df.columns = ['A', 'B', 'C', 'D', 'E', 'F']  # Renombrar columnas por letras
-        df['C'] = pd.to_numeric(df['C'], errors='coerce').fillna(0).astype(int)
-        fig = px.bar(df, x='E', y='C', color='F', title="Ventas de Latas por Cliente")
-        st.plotly_chart(fig)
-    else:
-        st.warning("No hay datos de ventas de latas disponibles o faltan columnas esperadas.")
-
-# Lista de clientes
-def reporte_clientes(df):
-    st.subheader("Lista de Clientes Registrados")
-    if not df.empty and df.shape[1] >= 2:
-        df.columns = ['A', 'B']  # Renombrar columnas por letras
-        st.dataframe(df[['A', 'B']])
-    else:
-        st.warning("No hay clientes registrados o faltan columnas esperadas.")
-
-# Alertas de barriles en clientes
-def generar_alertas(df):
-    st.subheader("Alertas de Barriles")
-    if not df.empty and df.shape[1] >= 8:
-        df = df.iloc[:, [0, 1, 3, 5, 6, 7, 8, 9]]  # Selección de columnas específicas
-        df.columns = ['A', 'B', 'D', 'F', 'G', 'H', 'I', 'J']  # Renombrar columnas por letras
-        df['J'] = pd.to_numeric(df['J'], errors='coerce').fillna(0).astype(int)
-        alertas = df[df['J'] > 180]
-        if not alertas.empty:
-            st.write("🔴 Barriles con clientes por más de 6 meses:")
-            st.dataframe(alertas)
-        
-        if 'E' in df.columns:
-            df['E'] = pd.to_numeric(df['E'], errors='coerce').fillna(0)
-            if df['E'].sum() < 200:
-                st.write("⚠️ Riesgo de quiebre de stock: menos de 200L disponibles.")
-    else:
-        st.warning("No hay datos disponibles para generar alertas o falta la columna correspondiente.")
-
 # Interfaz principal de la aplicación
 st.title("📊 Reportes de la Cervecería")
-reporte_inventario_latas(df_latas)
 reporte_barriles(df_barriles)
-reporte_ventas_latas(df_ventas_latas)
-reporte_clientes(df_clientes)
-generar_alertas(df_barriles)
