@@ -7,6 +7,8 @@ URL_SHEET = "https://docs.google.com/spreadsheets/d/1FjQ8XBDwDdrlJZsNkQ6YyaygkHL
 
 def cargar_datos():
     df = pd.read_csv(URL_SHEET)
+    df['Capacidad'] = df['Código'].astype(str).str[:2].astype(int)
+    df['Días en Cliente'] = pd.to_numeric(df['Días en Cliente'], errors='coerce')
     return df
 
 # Reporte de ventas
@@ -14,7 +16,6 @@ def cargar_datos():
 def ventas_mensuales(df):
     st.subheader("Ventas Mensuales y en Tiempo Real")
     
-    # Ventas por estilo y cliente
     fig1 = px.bar(df, x='Cliente', y='Código', color='Estilo', title="Ventas por Cliente y Estilo")
     st.plotly_chart(fig1)
     
@@ -29,8 +30,6 @@ def reporte_inventario(df):
     for estado, cantidad in estados.items():
         st.write(f"**{estado}:** {cantidad} barriles")
     
-    # Calcular litros por estado
-    df['Capacidad'] = df['Código'].astype(str).str[:2].astype(int)
     litros_por_estado = df.groupby("Estado")["Capacidad"].sum().to_dict()
     for estado, litros in litros_por_estado.items():
         st.write(f"**{estado}:** {litros} litros en total")
@@ -40,14 +39,14 @@ def reporte_inventario(df):
 def generar_alertas(df):
     st.subheader("Alertas")
     
-    # Barriles retenidos por más de un tiempo específico
-    df['Días en Cliente'] = pd.to_numeric(df['Días en Cliente'], errors='coerce')
-    barriles_retenidos = df[df['Días en Cliente'] > 180]
-    if not barriles_retenidos.empty:
+    if not df[df['Días en Cliente'] > 180].empty:
         st.write("🔴 Barriles en poder del cliente por más de 6 meses:")
-        st.dataframe(barriles_retenidos)
+        st.dataframe(df[df['Días en Cliente'] > 180])
     
-    # Stock crítico
+    if not df[df['Días en Cliente'] > 90].empty:
+        st.write("⚠️ Barriles sucios por más de 3 semanas:")
+        st.dataframe(df[df['Días en Cliente'] > 90])
+    
     litros_totales = df["Capacidad"].sum()
     if litros_totales < 200:
         st.write("⚠️ Riesgo de quiebre de stock: menos de 200L disponibles.")
