@@ -5,7 +5,7 @@ import streamlit as st
 # Función para obtener los datos de Google Sheets sin necesidad de credenciales
 def obtener_datos_de_hoja(sheet_id, sheet_name):
     # Conexión con Google Sheets (acceso público)
-    gc = gspread.authorize(None)  # Asegúrate de que la hoja esté pública
+    gc = gspread.client.Client(None)  # Usamos Client sin autenticación porque la hoja es pública
     worksheet = gc.open_by_key(sheet_id).worksheet(sheet_name)
     
     # Leer todos los registros de la hoja y convertirlos a un DataFrame
