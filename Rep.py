@@ -51,15 +51,28 @@ def reporte_inventario_latas(df):
 
 # Reporte de barriles
 def reporte_barriles(df):
-    st.subheader("Estado de los Barriles")
+    st.subheader("Estado de los Barriles y Litros Totales")
     if not df.empty and df.shape[1] >= 8:
         df = df.iloc[:, [0, 1, 3, 5, 6, 7, 8, 9]]  # Selección de columnas específicas
-        df.columns = ['A', 'B', 'D', 'F', 'G', 'H', 'I', 'J']  # Renombrar columnas por letras
-        estados = df['G'].value_counts().to_dict()
+        df.columns = ['Codigo', 'Estilo', 'Cliente', 'Estado', 'Responsable', 'Observaciones', 'Fecha', 'Dias']
+        
+        # Calcular litros según el código del barril
+        df['Litros'] = df['Codigo'].str[:2].astype(int)
+        
+        # Litros por estilo
+        litros_por_estilo = df.groupby('Estilo')['Litros'].sum().reset_index()
+        st.subheader("Litros por Estilo")
+        st.dataframe(litros_por_estilo)
+        
+        # Litros totales
+        litros_totales = df['Litros'].sum()
+        st.write(f"**Litros Totales:** {litros_totales} L")
+        
+        estados = df['Estado'].value_counts().to_dict()
         for estado, cantidad in estados.items():
             st.write(f"**{estado}:** {cantidad} barriles")
         
-        fig = px.pie(df, names='G', title="Distribución de Barriles por Estado")
+        fig = px.pie(df, names='Estado', title="Distribución de Barriles por Estado")
         st.plotly_chart(fig)
     else:
         st.warning("No hay datos de barriles disponibles o falta la columna correspondiente.")
@@ -95,11 +108,6 @@ def generar_alertas(df):
         if not alertas.empty:
             st.write("🔴 Barriles con clientes por más de 6 meses:")
             st.dataframe(alertas)
-        
-        if 'E' in df.columns:
-            df['E'] = pd.to_numeric(df['E'], errors='coerce').fillna(0)
-            if df['E'].sum() < 200:
-                st.write("⚠️ Riesgo de quiebre de stock: menos de 200L disponibles.")
     else:
         st.warning("No hay datos disponibles para generar alertas o falta la columna correspondiente.")
 
