@@ -39,17 +39,7 @@ df_barriles = cargar_datos("DatosM")
 df_ventas_latas = cargar_datos("VLatas")
 df_clientes = cargar_datos("RClientes")
 
-# Reporte de inventario de latas
-def reporte_inventario_latas(df):
-    st.subheader("Inventario de Latas en Cuarto Frío")
-    if not df.empty and df.shape[1] >= 5:
-        df.columns = ['Código', 'Lote', 'Estilo', 'Estado', 'Cantidad']  # Renombrar columnas correctamente
-        df['Cantidad'] = pd.to_numeric(df['Cantidad'], errors='coerce').fillna(0).astype(int)
-        st.dataframe(df)
-        fig = px.bar(df, x='Estilo', y='Cantidad', color='Estado', title="Cantidad de Latas por Estilo y Lote")
-        st.plotly_chart(fig)
-
-# Reporte de barriles
+   # Reporte de barriles
 def reporte_barriles(df):
     st.subheader("Estado de los Barriles")
     if not df.empty:
@@ -72,37 +62,6 @@ def reporte_barriles(df):
         fig = px.pie(df, names=col_estado, title="Distribución de Barriles por Estado")
         st.plotly_chart(fig)
 
-
-# Reporte de ventas de latas
-def reporte_ventas_latas(df):
-    st.subheader("Ventas y Despachos de Latas")
-    if not df.empty and df.shape[1] >= 6:
-        df.columns = ['Fecha', 'Cliente', 'Cantidad', 'Lote', 'Estilo', 'Estado']  # Ajustar nombres reales
-        df['Cantidad'] = pd.to_numeric(df['Cantidad'], errors='coerce').fillna(0).astype(int)
-        fig = px.bar(df, x='Cliente', y='Cantidad', color='Estado', title="Ventas de Latas por Cliente")
-        st.plotly_chart(fig)
-
-# Lista de clientes
-def reporte_clientes(df):
-    st.subheader("Lista de Clientes Registrados")
-    if not df.empty and df.shape[1] >= 2:
-        df.columns = ['Cliente', 'Dirección']  # Ajustar nombres correctos
-        st.dataframe(df[['Cliente', 'Dirección']])
-
-# Alertas de barriles en clientes
-def generar_alertas(df):
-    st.subheader("Alertas de Barriles")
-    if not df.empty and df.shape[1] >= 8:
-        df = df.iloc[:, [0, 1, 3, 5, 6, 7, 8, 9]]  # Selección de columnas específicas
-        df.columns = ['Código', 'Lote', 'Cliente', 'Estado', 'Fecha Despacho', 'Días en Cliente', 'Responsable', 'Observaciones']  # Nombres reales
-        df['Días en Cliente'] = pd.to_numeric(df['Días en Cliente'], errors='coerce').fillna(0).astype(int)
-        alertas = df[df['Días en Cliente'] > 180]
-        if not alertas.empty:
-            st.write("🔴 Barriles con clientes por más de 6 meses:")
-            st.dataframe(alertas)
-        if 'Estado' in df.columns:
-            if df[df['Estado'] == 'Disponible'].shape[0] < 10:
-                st.write("⚠️ Riesgo de quiebre de stock: menos de 10 barriles disponibles.")
 
 # Interfaz principal de la aplicación
 st.title("📊 Reportes de la Cervecería")
