@@ -2,69 +2,84 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 
-# URL de la base de datos en Google Sheets (debe ser un enlace público CSV)
-URL_SHEET = "https://docs.google.com/spreadsheets/d/1FjQ8XBDwDdrlJZsNkQ6YyaygkHLhpKmfLBv6wd3uluY/edit?usp=sharing"
+# URL base de la hoja de cálculo en Google Sheets (debe ser un enlace público CSV)
+BASE_URL = "https://docs.google.com/spreadsheets/d/1FjQ8XBDwDdrlJZsNkQ6YyaygkHLhpKmfLBv6wd3uluY/gviz/tq?tqx=out:csv&sheet="
 
-
-def cargar_datos():
+# Cargar datos de cada hoja
+def cargar_datos(hoja):
     try:
-        df = pd.read_csv(URL_SHEET)
-        if 'Código' in df.columns:
-            df['Capacidad'] = df['Código'].astype(str).str[:2].astype(int, errors='ignore')
-        if 'Días en Cliente' in df.columns:
-            df['Días en Cliente'] = pd.to_numeric(df['Días en Cliente'], errors='coerce')
+        url = BASE_URL + hoja
+        df = pd.read_csv(url)
         return df.dropna()
     except Exception as e:
-        st.error(f"Error al cargar datos: {e}")
+        st.error(f"Error al cargar datos de {hoja}: {e}")
         return pd.DataFrame()
 
-# Reporte de ventas
-def ventas_mensuales(df):
-    st.subheader("Ventas Mensuales y en Tiempo Real")
-    if not df.empty:
-        fig1 = px.bar(df, x='Cliente', y='Código', color='Estilo', title="Ventas por Cliente y Estilo")
-        st.plotly_chart(fig1)
-        
-        fig2 = px.pie(df, names='Estilo', title="Distribución de Ventas por Estilo")
-        st.plotly_chart(fig2)
-    else:
-        st.warning("No hay datos disponibles para generar gráficos.")
+# Cargar cada hoja de la base de datos
+df_latas = cargar_datos("Inventario latas")
+df_barriles = cargar_datos("Datos M")
+df_ventas_latas = cargar_datos("VLatas")
+df_clientes = cargar_datos("RClientes")
 
-# Reporte de inventario
-def reporte_inventario(df):
-    st.subheader("Estado del Inventario")
+# Reporte de inventario de latas
+def reporte_inventario_latas(df):
+    st.subheader("Inventario de Latas en Cuarto Frío")
+    if not df.empty:
+        st.dataframe(df)
+        fig = px.bar(df, x='Estilo', y='Cantidad', color='Lote', title="Cantidad de Latas por Estilo y Lote")
+        st.plotly_chart(fig)
+    else:
+        st.warning("No hay datos de latas disponibles.")
+
+# Reporte de barriles
+def reporte_barriles(df):
+    st.subheader("Estado de los Barriles")
     if not df.empty:
         estados = df["Estado"].value_counts().to_dict()
         for estado, cantidad in estados.items():
             st.write(f"**{estado}:** {cantidad} barriles")
         
-        litros_por_estado = df.groupby("Estado")["Capacidad"].sum().to_dict()
-        for estado, litros in litros_por_estado.items():
-            st.write(f"**{estado}:** {litros} litros en total")
+        fig = px.pie(df, names='Estado', title="Distribución de Barriles por Estado")
+        st.plotly_chart(fig)
     else:
-        st.warning("No hay datos disponibles para mostrar el inventario.")
+        st.warning("No hay datos de barriles disponibles.")
 
-# Alarmas y alertas
-def generar_alertas(df):
-    st.subheader("Alertas")
+# Reporte de ventas de latas
+def reporte_ventas_latas(df):
+    st.subheader("Ventas y Despachos de Latas")
     if not df.empty:
-        if not df[df['Días en Cliente'] > 180].empty:
-            st.write("🔴 Barriles en poder del cliente por más de 6 meses:")
-            st.dataframe(df[df['Días en Cliente'] > 180])
+        fig = px.bar(df, x='Cliente', y='Cantidad', color='Estado', title="Ventas de Latas por Cliente")
+        st.plotly_chart(fig)
+    else:
+        st.warning("No hay datos de ventas de latas disponibles.")
+
+# Lista de clientes
+def reporte_clientes(df):
+    st.subheader("Lista de Clientes Registrados")
+    if not df.empty:
+        st.dataframe(df[['Nombre', 'Dirección']])
+    else:
+        st.warning("No hay clientes registrados.")
+
+# Alertas de barriles en clientes
+def generar_alertas(df):
+    st.subheader("Alertas de Barriles")
+    if not df.empty:
+        df['Días en Cliente'] = pd.to_numeric(df['Días en Cliente'], errors='coerce')
+        alertas = df[df['Días en Cliente'] > 180]
+        if not alertas.empty:
+            st.write("🔴 Barriles con clientes por más de 6 meses:")
+            st.dataframe(alertas)
         
-        if not df[df['Días en Cliente'] > 90].empty:
-            st.write("⚠️ Barriles sucios por más de 3 semanas:")
-            st.dataframe(df[df['Días en Cliente'] > 90])
-        
-        litros_totales = df["Capacidad"].sum()
-        if litros_totales < 200:
+        if df['Capacidad'].sum() < 200:
             st.write("⚠️ Riesgo de quiebre de stock: menos de 200L disponibles.")
     else:
         st.warning("No hay datos disponibles para generar alertas.")
 
-# Interfaz de la app
+# Interfaz principal de la aplicación
 st.title("📊 Reportes de la Cervecería")
-data = cargar_datos()
-ventas_mensuales(data)
-reporte_inventario(data)
-generar_alertas(data)
+reporte_inventario_latas(df_latas)
+reporte_barriles(df_barriles)
+reporte_ventas_latas(df_ventas_latas)
+reporte_clientes(df_clientes)
+generar_alertas(df_barriles)
