@@ -21,7 +21,11 @@ def cargar_datos(hoja_nombre):
         df = pd.read_csv(url, dtype=str)
         df = df.dropna(how='all')  # Eliminar filas completamente vacías
         df.columns = df.columns.str.strip()  # Limpiar nombres de columnas
-        df.columns = pd.io.parsers.ParserBase({})._maybe_dedup_names(df.columns)  # Eliminar duplicados en nombres de columnas
+        
+        # Verificar nombres duplicados y renombrarlos
+        if df.columns.duplicated().any():
+            df.columns = [f"{col}_{i}" if df.columns.duplicated()[i] else col for i, col in enumerate(df.columns)]
+        
         print(f"Columnas de {hoja_nombre}: {df.columns.tolist()}")  # Debugging
         if df.empty or df.shape[1] < 2 or all(df.columns.str.contains("Unnamed")):
             return pd.DataFrame()
@@ -51,10 +55,16 @@ def reporte_barriles(df):
     if not df.empty and df.shape[1] >= 8:
         df = df.iloc[:, [0, 1, 3, 5, 6, 7, 8, 9]]  # Selección de columnas específicas
         df.columns = ['A', 'B', 'D', 'F', 'G', 'H', 'I', 'J']  # Renombrar columnas por letras
-        df = df.loc[:, ~df.columns.duplicated()]  # Eliminar columnas duplicadas
+        
+        if 'G' not in df.columns:
+            st.error("Error: No se encontró la columna 'Estado'. Verifica la hoja de cálculo.")
+            return
+
+        df = df[df['G'] != 'Despachado']  # Filtrar barriles no despachados
         estados = df['G'].value_counts().to_dict()
         for estado, cantidad in estados.items():
             st.write(f"**{estado}:** {cantidad} barriles")
+        
         fig = px.pie(df, names='G', title="Distribución de Barriles por Estado")
         st.plotly_chart(fig)
 
