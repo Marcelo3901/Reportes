@@ -55,13 +55,13 @@ def reporte_barriles(df):
     if not df.empty:
         # Asegurar que las columnas sean únicas
         df.columns = [f"{col}_{i}" if df.columns.duplicated()[i] else col for i, col in enumerate(df.columns)]
-        
+
         # Buscar la columna que contiene los estados
         col_estado = next((col for col in df.columns if "estado" in col.lower()), None)
         if not col_estado:
             st.error("Error: No se encontró la columna 'Estado'. Verifica la hoja de cálculo.")
             return
-        
+
         # Filtrar barriles no despachados de forma segura
         df = df[df[col_estado] != 'Despachado']
 
@@ -71,6 +71,7 @@ def reporte_barriles(df):
 
         fig = px.pie(df, names=col_estado, title="Distribución de Barriles por Estado")
         st.plotly_chart(fig)
+
 
 # Reporte de ventas de latas
 def reporte_ventas_latas(df):
