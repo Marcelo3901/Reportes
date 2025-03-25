@@ -38,8 +38,9 @@ df_clientes = cargar_datos("RClientes")
 # Reporte de barriles
 def reporte_barriles(df):
     st.subheader("Estado de los Barriles y Litros Totales")
-    if not df.empty and 'Codigo' in df.columns and 'Estado' in df.columns and 'Fecha' in df.columns:
-        df = df[['Codigo', 'Estilo', 'Cliente', 'Estado', 'Responsable', 'Observaciones', 'Fecha', 'Dias']].copy()
+    columnas_necesarias = {'Codigo', 'Estilo', 'Cliente', 'Estado', 'Responsable', 'Observaciones', 'Fecha', 'Dias'}
+    if not df.empty and columnas_necesarias.issubset(df.columns):
+        df = df[list(columnas_necesarias)].copy()
         
         # Convertir fecha a formato datetime para ordenar correctamente
         df['Fecha'] = pd.to_datetime(df['Fecha'], errors='coerce')
@@ -66,6 +67,10 @@ def reporte_barriles(df):
         # Convertir a enteros
         df_cuarto_frio['Litros'] = df_cuarto_frio['Litros'].astype(int)
         
+        if df_cuarto_frio.empty:
+            st.warning("No hay barriles en 'Cuarto Frío' disponibles para el reporte.")
+            return
+        
         # Calcular litros por estilo
         litros_por_estilo = df_cuarto_frio.groupby('Estilo')['Litros'].sum().reset_index()
         
@@ -81,6 +86,7 @@ def reporte_barriles(df):
         st.plotly_chart(fig)
     else:
         st.warning("No hay datos de barriles disponibles o faltan columnas necesarias.")
+        st.write("Columnas encontradas en la base de datos:", list(df.columns))
 
 # Interfaz principal de la aplicación
 st.title("📊 Reportes de la Cervecería")
