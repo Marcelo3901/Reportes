@@ -19,7 +19,7 @@ def cargar_datos(hoja_nombre):
     try:
         url = BASE_URL + urllib.parse.quote(SHEETS[hoja_nombre])
         df = pd.read_csv(url, dtype=str)
-        if df.empty or len(df.columns) < 2:
+        if df.empty or df.shape[1] < 2 or all(df.columns.str.contains("Unnamed")):
             st.warning(f"No se encontraron datos en la hoja {hoja_nombre}.")
             return pd.DataFrame()
         return df.dropna(how='all')
