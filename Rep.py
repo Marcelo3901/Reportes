@@ -18,9 +18,10 @@ SHEETS = {
 def cargar_datos(hoja_nombre):
     try:
         url = BASE_URL + urllib.parse.quote(SHEETS[hoja_nombre])
-        df = pd.read_csv(url)
-        if df.empty:
+        df = pd.read_csv(url, dtype=str)
+        if df.empty or len(df.columns) < 2:
             st.warning(f"No se encontraron datos en la hoja {hoja_nombre}.")
+            return pd.DataFrame()
         return df.dropna(how='all')
     except Exception as e:
         st.error(f"Error al cargar datos de {hoja_nombre}: {e}")
@@ -36,6 +37,7 @@ df_clientes = cargar_datos("RClientes")
 def reporte_inventario_latas(df):
     st.subheader("Inventario de Latas en Cuarto Frío")
     if not df.empty and {'Estilo', 'Cantidad', 'Lote'}.issubset(df.columns):
+        df['Cantidad'] = pd.to_numeric(df['Cantidad'], errors='coerce').fillna(0).astype(int)
         st.dataframe(df)
         fig = px.bar(df, x='Estilo', y='Cantidad', color='Lote', title="Cantidad de Latas por Estilo y Lote")
         st.plotly_chart(fig)
@@ -46,7 +48,7 @@ def reporte_inventario_latas(df):
 def reporte_barriles(df):
     st.subheader("Estado de los Barriles")
     if not df.empty and 'Estado' in df.columns:
-        estados = df["Estado"].value_counts().to_dict()
+        estados = df['Estado'].value_counts().to_dict()
         for estado, cantidad in estados.items():
             st.write(f"**{estado}:** {cantidad} barriles")
         
@@ -59,6 +61,7 @@ def reporte_barriles(df):
 def reporte_ventas_latas(df):
     st.subheader("Ventas y Despachos de Latas")
     if not df.empty and {'Cliente', 'Cantidad', 'Estado'}.issubset(df.columns):
+        df['Cantidad'] = pd.to_numeric(df['Cantidad'], errors='coerce').fillna(0).astype(int)
         fig = px.bar(df, x='Cliente', y='Cantidad', color='Estado', title="Ventas de Latas por Cliente")
         st.plotly_chart(fig)
     else:
@@ -76,14 +79,16 @@ def reporte_clientes(df):
 def generar_alertas(df):
     st.subheader("Alertas de Barriles")
     if not df.empty and 'Días en Cliente' in df.columns:
-        df['Días en Cliente'] = pd.to_numeric(df['Días en Cliente'], errors='coerce')
+        df['Días en Cliente'] = pd.to_numeric(df['Días en Cliente'], errors='coerce').fillna(0).astype(int)
         alertas = df[df['Días en Cliente'] > 180]
         if not alertas.empty:
             st.write("🔴 Barriles con clientes por más de 6 meses:")
             st.dataframe(alertas)
         
-        if 'Capacidad' in df.columns and df['Capacidad'].sum() < 200:
-            st.write("⚠️ Riesgo de quiebre de stock: menos de 200L disponibles.")
+        if 'Capacidad' in df.columns:
+            df['Capacidad'] = pd.to_numeric(df['Capacidad'], errors='coerce').fillna(0)
+            if df['Capacidad'].sum() < 200:
+                st.write("⚠️ Riesgo de quiebre de stock: menos de 200L disponibles.")
     else:
         st.warning("No hay datos disponibles para generar alertas o falta la columna 'Días en Cliente'.")
 
