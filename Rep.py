@@ -21,6 +21,8 @@ def cargar_datos(hoja_nombre):
         df = pd.read_csv(url, dtype=str)
         df = df.dropna(how='all')  # Eliminar filas completamente vacías
         df.columns = df.columns.str.strip()  # Limpiar nombres de columnas
+        df = df.loc[:, ~df.columns.duplicated()]  # Eliminar columnas duplicadas
+        
         if df.empty or df.shape[1] < 2 or all(df.columns.str.contains("Unnamed")):
             st.warning(f"No se encontraron datos en la hoja {hoja_nombre} o la hoja está vacía.")
             return pd.DataFrame()
@@ -57,11 +59,8 @@ def reporte_barriles(df):
         st.write("Columnas encontradas en la base de datos:", list(df.columns))
         return
     
-    # Ordenar por Código y la última observación disponible
-    df = df.sort_values(by=['Codigo'], ascending=[True])
-    
-    # Obtener únicamente el último estado de cada barril
-    df = df.drop_duplicates(subset=['Codigo'], keep='last')
+    # Eliminar filas duplicadas y mantener el último estado
+    df = df.sort_values(by=['Codigo'], ascending=[True]).drop_duplicates(subset=['Codigo'], keep='last')
     
     # Excluir barriles que ya fueron despachados
     df = df[df['Estado'] != 'Despachado']
