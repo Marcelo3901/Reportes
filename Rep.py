@@ -48,22 +48,22 @@ def reporte_barriles(df):
         # Excluir barriles despachados del inventario
         df = df[df['Estado'] != 'Despachado']
         
-        # Filtrar barriles en "Lleno en bodega"
-        df = df[df['Estado'] == 'Lleno en bodega']
+        # Filtrar barriles en "Cuarto Frío"
+        df = df[df['Estado'] == 'Cuarto Frío']
         
         # Calcular litros según el código del barril
         df['Litros'] = df['Codigo'].astype(str).str[:2].astype(int)
         
         # Litros por estilo
         litros_por_estilo = df.groupby('Estilo')['Litros'].sum().reset_index()
-        st.subheader("Litros por Estilo (Solo Lleno en Bodega)")
+        st.subheader("Litros por Estilo (Solo en Cuarto Frío)")
         st.dataframe(litros_por_estilo)
         
         # Litros totales
         litros_totales = df['Litros'].sum()
-        st.write(f"**Litros Totales en Bodega:** {litros_totales} L")
+        st.write(f"**Litros Totales en Cuarto Frío:** {litros_totales} L")
         
-        fig = px.pie(df, names='Estado', title="Distribución de Barriles en Bodega")
+        fig = px.pie(df, names='Estado', title="Distribución de Barriles en Cuarto Frío")
         st.plotly_chart(fig)
     else:
         st.warning("No hay datos de barriles disponibles o falta la columna correspondiente.")
