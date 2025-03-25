@@ -3,7 +3,7 @@ import pandas as pd
 import plotly.express as px
 
 # URL de la base de datos en Google Sheets (debe ser un enlace público CSV)
-URL_SHEET = "https://docs.google.com/spreadsheets/d/1FjQ8XBDwDdrlJZsNkQ6YyaygkHLhpKmfLBv6wd3uluY/export?format=csv"
+URL_SHEET = "https://docs.google.com/spreadsheets/d/1FjQ8XBDwDdrlJZsNkQ6YyaygkHLhpKmfLBv6wd3uluY/edit?usp=sharing"
 
 def cargar_datos():
     df = pd.read_csv(URL_SHEET)
