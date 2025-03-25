@@ -3,21 +3,29 @@ import pandas as pd
 import plotly.express as px
 
 # URL base de la hoja de cálculo en Google Sheets (debe ser un enlace público CSV)
-BASE_URL = "https://docs.google.com/spreadsheets/d/1FjQ8XBDwDdrlJZsNkQ6YyaygkHLhpKmfLBv6wd3uluY/edit?usp=sharing"
+BASE_URL = "https://docs.google.com/spreadsheets/d/1FjQ8XBDwDdrlJZsNkQ6YyaygkHLhpKmfLBv6wd3uluY/gviz/tq?tqx=out:csv&sheet="
+
+# Nombres de hojas corregidos
+SHEETS = {
+    "InventarioLatas": "InventarioLatas",
+    "DatosM": "DatosM",
+    "VLatas": "VLatas",
+    "RClientes": "RClientes"
+}
 
 # Cargar datos de cada hoja
-def cargar_datos(hoja):
+def cargar_datos(hoja_nombre):
     try:
-        url = BASE_URL + hoja
+        url = BASE_URL + SHEETS[hoja_nombre]
         df = pd.read_csv(url)
         return df.dropna()
     except Exception as e:
-        st.error(f"Error al cargar datos de {hoja}: {e}")
+        st.error(f"Error al cargar datos de {hoja_nombre}: {e}")
         return pd.DataFrame()
 
 # Cargar cada hoja de la base de datos
-df_latas = cargar_datos("Inventario latas")
-df_barriles = cargar_datos("Datos M")
+df_latas = cargar_datos("InventarioLatas")
+df_barriles = cargar_datos("DatosM")
 df_ventas_latas = cargar_datos("VLatas")
 df_clientes = cargar_datos("RClientes")
 
@@ -65,13 +73,13 @@ def reporte_clientes(df):
 def generar_alertas(df):
     st.subheader("Alertas de Barriles")
     if not df.empty:
-        df['Días en Cliente'] = pd.to_numeric(df['Días en Cliente'], errors='coerce')
+        df['Días en Cliente'] = pd.to_numeric(df.get('Días en Cliente', pd.Series()), errors='coerce')
         alertas = df[df['Días en Cliente'] > 180]
         if not alertas.empty:
             st.write("🔴 Barriles con clientes por más de 6 meses:")
             st.dataframe(alertas)
         
-        if df['Capacidad'].sum() < 200:
+        if 'Capacidad' in df.columns and df['Capacidad'].sum() < 200:
             st.write("⚠️ Riesgo de quiebre de stock: menos de 200L disponibles.")
     else:
         st.warning("No hay datos disponibles para generar alertas.")
