@@ -56,25 +56,26 @@ def reporte_barriles(df):
         df = df.iloc[:, [0, 1, 3, 5, 6, 7, 8, 9]]  # Selección de columnas específicas
         df.columns = ['Codigo', 'Estilo', 'Cliente', 'Estado', 'Responsable', 'Observaciones', 'Fecha', 'Dias']
         
-        # Filtrar último estado de cada barril
-        df = df.sort_values(by=['Codigo', 'Fecha'], ascending=[True, False]).drop_duplicates(subset=['Codigo'], keep='first')
-        
-        # Filtrar barriles en "Lleno en bodega"
-        df = df[df['Estado'] == 'Lleno en bodega']
+        # Filtrar barriles en "En cuarto frío"
+        df = df[df['Estado'] == 'En cuarto frío']
         
         # Calcular litros según el código del barril
-        df['Litros'] = df['Codigo'].astype(str).str[:2].astype(int)
+        df['Litros'] = df['Codigo'].str[:2].astype(int)
         
         # Litros por estilo
         litros_por_estilo = df.groupby('Estilo')['Litros'].sum().reset_index()
-        st.subheader("Litros por Estilo (Solo Lleno en Bodega)")
+        st.subheader("Litros por Estilo (Solo en Cuarto Frío)")
         st.dataframe(litros_por_estilo)
         
         # Litros totales
         litros_totales = df['Litros'].sum()
-        st.write(f"**Litros Totales en Bodega:** {litros_totales} L")
+        st.write(f"**Litros Totales en Cuarto Frío:** {litros_totales} L")
         
-        fig = px.pie(df, names='Estado', title="Distribución de Barriles en Bodega")
+        estados = df['Estado'].value_counts().to_dict()
+        for estado, cantidad in estados.items():
+            st.write(f"**{estado}:** {cantidad} barriles")
+        
+        fig = px.pie(df, names='Estado', title="Distribución de Barriles en Cuarto Frío")
         st.plotly_chart(fig)
     else:
         st.warning("No hay datos de barriles disponibles o falta la columna correspondiente.")
