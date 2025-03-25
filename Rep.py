@@ -1,8 +1,6 @@
 import gspread
 import pandas as pd
 
-# Conexión a Google Sheets (sin credenciales)
-gc = gspread.service_account(filename=None)  # Usar None para conexión sin credenciales
 
 # URL de tu hoja de Google Sheets (puedes usar la URL pública)
 url = 'https://docs.google.com/spreadsheets/d/1FjQ8XBDwDdrlJZsNkQ6YyaygkHLhpKmfLBv6wd3uluY/edit?usp=sharing'
