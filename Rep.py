@@ -52,6 +52,9 @@ def reporte_barriles(df):
     }
     df = df.rename(columns=columnas_mapeo)
     
+    # Eliminar columnas duplicadas si existen
+    df = df.loc[:, ~df.columns.duplicated()]
+    
     columnas_necesarias = {'Codigo', 'Estilo', 'Cliente', 'Estado', 'Responsable', 'Observaciones'}
     
     if not columnas_necesarias.issubset(df.columns):
