@@ -52,20 +52,22 @@ def reporte_inventario_latas(df):
 # Reporte de barriles
 def reporte_barriles(df):
     st.subheader("Estado de los Barriles")
-    if not df.empty and df.shape[1] >= 8:
-        df = df.iloc[:, [0, 1, 3, 5, 6, 7, 8, 9]]  # Selección de columnas específicas
-        df.columns = ['A', 'B', 'D', 'F', 'G', 'H', 'I', 'J']  # Renombrar columnas por letras
+    if not df.empty:
+        # Asegurar que las columnas sean únicas
+        df.columns = [f"{col}_{i}" if df.columns.duplicated()[i] else col for i, col in enumerate(df.columns)]
         
-        if 'G' not in df.columns:
+        # Buscar la columna que contiene los estados
+        col_estado = next((col for col in df.columns if "estado" in col.lower()), None)
+        if not col_estado:
             st.error("Error: No se encontró la columna 'Estado'. Verifica la hoja de cálculo.")
             return
-
-        df = df[df['G'] != 'Despachado']  # Filtrar barriles no despachados
-        estados = df['G'].value_counts().to_dict()
+        
+        df = df[df[col_estado] != 'Despachado']  # Filtrar barriles no despachados
+        estados = df[col_estado].value_counts().to_dict()
         for estado, cantidad in estados.items():
             st.write(f"**{estado}:** {cantidad} barriles")
-        
-        fig = px.pie(df, names='G', title="Distribución de Barriles por Estado")
+
+        fig = px.pie(df, names=col_estado, title="Distribución de Barriles por Estado")
         st.plotly_chart(fig)
 
 # Reporte de ventas de latas
