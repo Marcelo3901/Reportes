@@ -4,7 +4,7 @@ import plotly.express as px
 import urllib.parse
 
 # URL base de la hoja de cálculo en Google Sheets (debe ser un enlace público CSV)
-BASE_URL = "https://docs.google.com/spreadsheets/d/1FjQ8XBDwDdrlJZsNkQ6YyaygkHLhpKmfLBv6wd3uluY/gviz/tq?tqx=out:csv&sheet="
+BASE_URL = "https://docs.google.com/spreadsheets/d/1FjQ8XBDwDdrlJZsNkQ6YyaygkHLhpKmfLBv6wd3uluY/edit?usp=sharing"
 
 # Nombres de hojas corregidos
 SHEETS = {
