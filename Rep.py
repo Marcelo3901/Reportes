@@ -26,7 +26,7 @@ def cargar_datos(hoja_nombre):
         if df.columns.duplicated().any():
             df.columns = [f"{col}_{i}" if df.columns.duplicated()[i] else col for i, col in enumerate(df.columns)]
         
-        print(f"Columnas de {hoja_nombre}: {df.columns.tolist()}")  # Debugging
+        st.write(f"Columnas de {hoja_nombre}: {df.columns.tolist()}")  # Debugging
         if df.empty or df.shape[1] < 2 or all(df.columns.str.contains("Unnamed")):
             return pd.DataFrame()
         return df
@@ -43,19 +43,19 @@ df_clientes = cargar_datos("RClientes")
 def reporte_inventario_latas(df):
     st.subheader("Inventario de Latas en Cuarto Frío")
     if not df.empty and df.shape[1] >= 5:
-        df.columns = ['A', 'B', 'C', 'D', 'E']  # Renombrar columnas por letras
-        df['C'] = pd.to_numeric(df['C'], errors='coerce').fillna(0).astype(int)
+        df.columns = ['Código', 'Lote', 'Estilo', 'Estado', 'Cantidad']  # Renombrar columnas correctamente
+        df['Cantidad'] = pd.to_numeric(df['Cantidad'], errors='coerce').fillna(0).astype(int)
         st.dataframe(df)
-        fig = px.bar(df, x='B', y='C', color='D', title="Cantidad de Latas por Estilo y Lote")
+        fig = px.bar(df, x='Estilo', y='Cantidad', color='Estado', title="Cantidad de Latas por Estilo y Lote")
         st.plotly_chart(fig)
 
 # Reporte de barriles
 def reporte_barriles(df):
     st.subheader("Estado de los Barriles")
     if not df.empty:
-        # Asegurar que las columnas sean únicas
-        df.columns = [f"{col}_{i}" if df.columns.duplicated()[i] else col for i, col in enumerate(df.columns)]
-
+        # Mostrar nombres reales de columnas para depuración
+        st.write("Columnas disponibles en DatosM:", df.columns.tolist())
+        
         # Buscar la columna que contiene los estados
         col_estado = next((col for col in df.columns if "estado" in col.lower()), None)
         if not col_estado:
@@ -77,33 +77,32 @@ def reporte_barriles(df):
 def reporte_ventas_latas(df):
     st.subheader("Ventas y Despachos de Latas")
     if not df.empty and df.shape[1] >= 6:
-        df.columns = ['A', 'B', 'C', 'D', 'E', 'F']  # Renombrar columnas por letras
-        df['C'] = pd.to_numeric(df['C'], errors='coerce').fillna(0).astype(int)
-        fig = px.bar(df, x='E', y='C', color='F', title="Ventas de Latas por Cliente")
+        df.columns = ['Fecha', 'Cliente', 'Cantidad', 'Lote', 'Estilo', 'Estado']  # Ajustar nombres reales
+        df['Cantidad'] = pd.to_numeric(df['Cantidad'], errors='coerce').fillna(0).astype(int)
+        fig = px.bar(df, x='Cliente', y='Cantidad', color='Estado', title="Ventas de Latas por Cliente")
         st.plotly_chart(fig)
 
 # Lista de clientes
 def reporte_clientes(df):
     st.subheader("Lista de Clientes Registrados")
     if not df.empty and df.shape[1] >= 2:
-        df.columns = ['A', 'B']  # Renombrar columnas por letras
-        st.dataframe(df[['A', 'B']])
+        df.columns = ['Cliente', 'Dirección']  # Ajustar nombres correctos
+        st.dataframe(df[['Cliente', 'Dirección']])
 
 # Alertas de barriles en clientes
 def generar_alertas(df):
     st.subheader("Alertas de Barriles")
     if not df.empty and df.shape[1] >= 8:
         df = df.iloc[:, [0, 1, 3, 5, 6, 7, 8, 9]]  # Selección de columnas específicas
-        df.columns = ['A', 'B', 'D', 'F', 'G', 'H', 'I', 'J']  # Renombrar columnas por letras
-        df['J'] = pd.to_numeric(df['J'], errors='coerce').fillna(0).astype(int)
-        alertas = df[df['J'] > 180]
+        df.columns = ['Código', 'Lote', 'Cliente', 'Estado', 'Fecha Despacho', 'Días en Cliente', 'Responsable', 'Observaciones']  # Nombres reales
+        df['Días en Cliente'] = pd.to_numeric(df['Días en Cliente'], errors='coerce').fillna(0).astype(int)
+        alertas = df[df['Días en Cliente'] > 180]
         if not alertas.empty:
             st.write("🔴 Barriles con clientes por más de 6 meses:")
             st.dataframe(alertas)
-        if 'E' in df.columns:
-            df['E'] = pd.to_numeric(df['E'], errors='coerce').fillna(0)
-            if df['E'].sum() < 200:
-                st.write("⚠️ Riesgo de quiebre de stock: menos de 200L disponibles.")
+        if 'Estado' in df.columns:
+            if df[df['Estado'] == 'Disponible'].shape[0] < 10:
+                st.write("⚠️ Riesgo de quiebre de stock: menos de 10 barriles disponibles.")
 
 # Interfaz principal de la aplicación
 st.title("📊 Reportes de la Cervecería")
