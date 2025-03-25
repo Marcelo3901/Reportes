@@ -13,7 +13,18 @@ SHEETS = {
     "VLatas": "VLatas",
     "RClientes": "RClientes"
 }
+# Depuración: Mostrar columnas antes del filtrado
+st.write("Columnas disponibles en la hoja DatosM:", list(df.columns))
 
+# Verificar si hay columnas duplicadas
+duplicadas = df.columns[df.columns.duplicated()]
+if not duplicadas.empty:
+    st.warning(f"Las siguientes columnas están duplicadas y podrían causar errores: {list(duplicadas)}")
+
+# Asegurar que la columna 'Estado' existe antes de filtrar
+if 'Estado' not in df.columns:
+    st.error("La columna 'Estado' no está presente en los datos. Verifica la estructura de la hoja 'DatosM'.")
+    return
 # Cargar datos de cada hoja
 def cargar_datos(hoja_nombre):
     try:
