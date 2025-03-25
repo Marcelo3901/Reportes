@@ -3,3 +3,4 @@ pandas
 plotly
 urllib3
 gspread
+request
