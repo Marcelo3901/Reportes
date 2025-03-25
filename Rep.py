@@ -3,7 +3,7 @@ import pandas as pd
 import plotly.express as px
 
 # URL base de la hoja de cálculo en Google Sheets (debe ser un enlace público CSV)
-BASE_URL = "https://docs.google.com/spreadsheets/d/1FjQ8XBDwDdrlJZsNkQ6YyaygkHLhpKmfLBv6wd3uluY/gviz/tq?tqx=out:csv&sheet="
+BASE_URL = "https://docs.google.com/spreadsheets/d/1FjQ8XBDwDdrlJZsNkQ6YyaygkHLhpKmfLBv6wd3uluY/edit?usp=sharing"
 
 # Cargar datos de cada hoja
 def cargar_datos(hoja):
