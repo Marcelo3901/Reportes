@@ -20,11 +20,13 @@ def cargar_datos(hoja_nombre):
         url = BASE_URL + urllib.parse.quote(SHEETS[hoja_nombre])
         st.write(f"Cargando datos desde: {url}")  # Depuración
         df = pd.read_csv(url, dtype=str)
+        df = df.dropna(how='all')  # Eliminar filas completamente vacías
+        df.columns = df.columns.str.strip()  # Limpiar nombres de columnas
         if df.empty or df.shape[1] < 2 or all(df.columns.str.contains("Unnamed")):
             st.warning(f"No se encontraron datos en la hoja {hoja_nombre} o la hoja está vacía.")
             return pd.DataFrame()
         st.success(f"Datos de {hoja_nombre} cargados correctamente.")
-        return df.dropna(how='all')
+        return df
     except Exception as e:
         st.error(f"Error al cargar datos de {hoja_nombre}: {e}")
         return pd.DataFrame()
@@ -38,7 +40,8 @@ df_clientes = cargar_datos("RClientes")
 # Reporte de inventario de latas
 def reporte_inventario_latas(df):
     st.subheader("Inventario de Latas en Cuarto Frío")
-    if not df.empty and {'Estilo', 'Cantidad', 'Lote'}.issubset(df.columns):
+    columnas_requeridas = {"Estilo", "Cantidad", "Lote", "Responsable"}
+    if not df.empty and columnas_requeridas.issubset(df.columns):
         df['Cantidad'] = pd.to_numeric(df['Cantidad'], errors='coerce').fillna(0).astype(int)
         st.dataframe(df)
         fig = px.bar(df, x='Estilo', y='Cantidad', color='Lote', title="Cantidad de Latas por Estilo y Lote")
