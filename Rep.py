@@ -8,8 +8,8 @@ BASE_URL = "https://docs.google.com/spreadsheets/d/1FjQ8XBDwDdrlJZsNkQ6YyaygkHLh
 
 # Nombres de hojas corregidos
 SHEETS = {
-    "InventarioLatas": "Inventario latas",
-    "DatosM": "Datos M",
+    "InventarioLatas": "InventarioLatas",
+    "DatosM": "DatosM",
     "VLatas": "VLatas",
     "RClientes": "RClientes"
 }
@@ -18,10 +18,12 @@ SHEETS = {
 def cargar_datos(hoja_nombre):
     try:
         url = BASE_URL + urllib.parse.quote(SHEETS[hoja_nombre])
+        st.write(f"Cargando datos desde: {url}")  # Depuración
         df = pd.read_csv(url, dtype=str)
         if df.empty or df.shape[1] < 2 or all(df.columns.str.contains("Unnamed")):
-            st.warning(f"No se encontraron datos en la hoja {hoja_nombre}.")
+            st.warning(f"No se encontraron datos en la hoja {hoja_nombre} o la hoja está vacía.")
             return pd.DataFrame()
+        st.success(f"Datos de {hoja_nombre} cargados correctamente.")
         return df.dropna(how='all')
     except Exception as e:
         st.error(f"Error al cargar datos de {hoja_nombre}: {e}")
