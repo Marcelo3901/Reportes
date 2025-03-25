@@ -18,17 +18,13 @@ SHEETS = {
 def cargar_datos(hoja_nombre):
     try:
         url = BASE_URL + urllib.parse.quote(SHEETS[hoja_nombre])
-        st.write(f"Cargando datos desde: {url}")  # Depuración
         df = pd.read_csv(url, dtype=str)
         df = df.dropna(how='all')  # Eliminar filas completamente vacías
         df.columns = df.columns.str.strip()  # Limpiar nombres de columnas
         if df.empty or df.shape[1] < 2 or all(df.columns.str.contains("Unnamed")):
-            st.warning(f"No se encontraron datos en la hoja {hoja_nombre} o la hoja está vacía.")
             return pd.DataFrame()
-        st.success(f"Datos de {hoja_nombre} cargados correctamente.")
         return df
-    except Exception as e:
-        st.error(f"Error al cargar datos de {hoja_nombre}: {e}")
+    except Exception:
         return pd.DataFrame()
 
 # Cargar cada hoja de la base de datos
@@ -46,8 +42,6 @@ def reporte_inventario_latas(df):
         st.dataframe(df)
         fig = px.bar(df, x='B', y='C', color='D', title="Cantidad de Latas por Estilo y Lote")
         st.plotly_chart(fig)
-    else:
-        st.warning("No hay datos de latas disponibles o faltan columnas esperadas.")
 
 # Reporte de barriles
 def reporte_barriles(df):
@@ -58,11 +52,8 @@ def reporte_barriles(df):
         estados = df['G'].value_counts().to_dict()
         for estado, cantidad in estados.items():
             st.write(f"**{estado}:** {cantidad} barriles")
-        
         fig = px.pie(df, names='G', title="Distribución de Barriles por Estado")
         st.plotly_chart(fig)
-    else:
-        st.warning("No hay datos de barriles disponibles o falta la columna correspondiente.")
 
 # Reporte de ventas de latas
 def reporte_ventas_latas(df):
@@ -72,8 +63,6 @@ def reporte_ventas_latas(df):
         df['C'] = pd.to_numeric(df['C'], errors='coerce').fillna(0).astype(int)
         fig = px.bar(df, x='E', y='C', color='F', title="Ventas de Latas por Cliente")
         st.plotly_chart(fig)
-    else:
-        st.warning("No hay datos de ventas de latas disponibles o faltan columnas esperadas.")
 
 # Lista de clientes
 def reporte_clientes(df):
@@ -81,8 +70,6 @@ def reporte_clientes(df):
     if not df.empty and df.shape[1] >= 2:
         df.columns = ['A', 'B']  # Renombrar columnas por letras
         st.dataframe(df[['A', 'B']])
-    else:
-        st.warning("No hay clientes registrados o faltan columnas esperadas.")
 
 # Alertas de barriles en clientes
 def generar_alertas(df):
@@ -95,13 +82,10 @@ def generar_alertas(df):
         if not alertas.empty:
             st.write("🔴 Barriles con clientes por más de 6 meses:")
             st.dataframe(alertas)
-        
         if 'E' in df.columns:
             df['E'] = pd.to_numeric(df['E'], errors='coerce').fillna(0)
             if df['E'].sum() < 200:
                 st.write("⚠️ Riesgo de quiebre de stock: menos de 200L disponibles.")
-    else:
-        st.warning("No hay datos disponibles para generar alertas o falta la columna correspondiente.")
 
 # Interfaz principal de la aplicación
 st.title("📊 Reportes de la Cervecería")
