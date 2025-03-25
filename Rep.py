@@ -9,7 +9,7 @@ sheet_id = '1FjQ8XBDwDdrlJZsNkQ6YyaygkHLhpKmfLBv6wd3uluY'
 range_name = 'DatosM'
 
 # Conexión con Google Sheets (acceso público)
-gc = gspread.service_account(api_key='YOUR_PUBLIC_API_KEY')
+gc = gspread.Client(auth=None)
 
 # Abrir la hoja de cálculo usando el ID de la hoja
 worksheet = gc.open_by_key(sheet_id).worksheet(range_name)
