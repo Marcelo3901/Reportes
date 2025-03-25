@@ -2,26 +2,26 @@ import gspread
 import pandas as pd
 import streamlit as st
 
-# Función para obtener los datos de Google Sheets sin necesidad de credenciales
-def obtener_datos_de_hoja(sheet_id, sheet_name):
-    # Conexión con Google Sheets (acceso público)
-    gc = gspread.client.Client(None)  # Usamos Client sin autenticación porque la hoja es pública
-    worksheet = gc.open_by_key(sheet_id).worksheet(sheet_name)
+# Función para obtener datos de una hoja pública de Google Sheets
+def obtener_datos_de_hoja(sheet_url):
+    # Conectar con la hoja pública de Google Sheets
+    gc = gspread.service_account(filename=None)  # No necesitamos credenciales
+    sheet = gc.open_by_url(sheet_url)
+    worksheet = sheet.sheet1  # Accede a la primera hoja del archivo
     
-    # Leer todos los registros de la hoja y convertirlos a un DataFrame
+    # Obtener todos los registros de la hoja
     data = worksheet.get_all_records()
+    
+    # Convertir los registros a un DataFrame de pandas
     df = pd.DataFrame(data)
     
     return df
 
-# ID de la hoja de Google Sheets (obténlo de la URL)
-sheet_id = '1FjQ8XBDwDdrlJZsNkQ6YyaygkHLhpKmfLBv6wd3uluY'
-
-# Nombre de la hoja en el Google Sheets que quieres usar (por ejemplo, DatosM)
-sheet_name = 'DatosM'
+# URL de la hoja de Google Sheets (pública)
+sheet_url = 'https://docs.google.com/spreadsheets/d/1FjQ8XBDwDdrlJZsNkQ6YyaygkHLhpKmfLBv6wd3uluY/edit?usp=sharing'
 
 # Llamar la función para obtener los datos
-df = obtener_datos_de_hoja(sheet_id, sheet_name)
+df = obtener_datos_de_hoja(sheet_url)
 
 # Preprocesar los datos para el reporte de inventario
 df['Marca temporal'] = pd.to_datetime(df['Marca temporal'], format='%d/%m/%Y %H:%M:%S')
