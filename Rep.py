@@ -1,77 +1,26 @@
 import streamlit as st
+import gspread
+from oauth2client.service_account import ServiceAccountCredentials
 import pandas as pd
-import plotly.express as px
-import urllib.parse
 
-# URL base de la hoja de cálculo en Google Sheets (debe ser un enlace público CSV)
-BASE_URL = "https://docs.google.com/spreadsheets/d/1FjQ8XBDwDdrlJZsNkQ6YyaygkHLhpKmfLBv6wd3uluY/gviz/tq?tqx=out:csv&sheet="
+# Definir el alcance de las credenciales de la API
+scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
 
-# Nombres de hojas corregidos
-SHEETS = {
-    "InventarioLatas": "InventarioLatas",
-    "DatosM": "DatosM",
-    "VLatas": "VLatas",
-    "RClientes": "RClientes"
-}
+# Autenticación usando el archivo credentials.json
+creds = ServiceAccountCredentials.from_json_keyfile_name('credentials.json', scope)
+client = gspread.authorize(creds)
 
-# Cargar datos de cada hoja
-def cargar_datos(hoja_nombre):
-    try:
-        url = BASE_URL + urllib.parse.quote(SHEETS[hoja_nombre])
-        st.write(f"Intentando cargar datos desde: {url}")  # Ver URL para depuración
-        df = pd.read_csv(url, dtype=str)
-        df = df.dropna(how='all')  # Eliminar filas completamente vacías
-        df.columns = df.columns.str.strip()  # Limpiar nombres de columnas
-        
-        # Verificar nombres duplicados y renombrarlos
-        if df.columns.duplicated().any():
-            df.columns = [f"{col}_{i}" if df.columns.duplicated()[i] else col for i, col in enumerate(df.columns)]
-        
-        st.write(f"Columnas de {hoja_nombre}: {df.columns.tolist()}")  # Debugging
-        if df.empty or df.shape[1] < 2 or all(df.columns.str.contains("Unnamed")):
-            st.error(f"La hoja {hoja_nombre} está vacía o no se pudo cargar correctamente.")
-            return pd.DataFrame()
-        return df
-    except Exception as e:
-        st.error(f"Error al cargar {hoja_nombre}: {str(e)}")
-        return pd.DataFrame()
+# Abre la hoja de cálculo utilizando el URL de tu hoja de Google Sheets
+sheet = client.open_by_url("https://docs.google.com/spreadsheets/d/1FjQ8XBDwDdrlJZsNkQ6YyaygkHLhpKmfLBv6wd3uluY/edit?usp=sharing")
 
-# Cargar cada hoja de la base de datos
-df_latas = cargar_datos("InventarioLatas")
-df_barriles = cargar_datos("DatosM")
-df_ventas_latas = cargar_datos("VLatas")
-df_clientes = cargar_datos("RClientes")
+# Selecciona la hoja que quieres acceder, por ejemplo la primera hoja
+worksheet = sheet.get_worksheet(0)
 
-# Verificación de datos cargados en DatosM
-st.subheader("Vista previa de DatosM")
-if not df_barriles.empty:
-    st.write(df_barriles.head())  # Mostrar las primeras filas para depuración
-else:
-    st.error("No se pudieron cargar los datos de la hoja DatosM. Verifica la conexión y el formato de la hoja.")
+# Lee todos los registros de la hoja y conviértelos en un DataFrame de pandas
+data = worksheet.get_all_records()  # Esto lee todos los registros
+df = pd.DataFrame(data)
 
-# Reporte de barriles
-def reporte_barriles(df):
-    st.subheader("Estado de los Barriles")
-    if not df.empty:
-        # Mostrar nombres reales de columnas para depuración
-        st.write("Columnas disponibles en DatosM:", df.columns.tolist())
-        
-        # Buscar la columna que contiene los estados
-        col_estado = next((col for col in df.columns if "estado" in col.lower()), None)
-        if not col_estado:
-            st.error("Error: No se encontró la columna 'Estado'. Verifica la hoja de cálculo.")
-            return
+# Muestra los datos en Streamlit
+st.write(df)
 
-        # Filtrar barriles no despachados de forma segura
-        df = df[df[col_estado] != 'Despachado']
-
-        estados = df[col_estado].value_counts().to_dict()
-        for estado, cantidad in estados.items():
-            st.write(f"**{estado}:** {cantidad} barriles")
-
-        fig = px.pie(df, names=col_estado, title="Distribución de Barriles por Estado")
-        st.plotly_chart(fig)
-
-# Interfaz principal de la aplicación
-st.title("📊 Reportes de la Cervecería")
-reporte_barriles(df_barriles)
+# Puedes agregar más lógica aquí para generar los reportes o métricas que necesitas
