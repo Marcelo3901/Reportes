@@ -26,6 +26,8 @@ def cargar_datos(hoja_nombre):
         if df.empty or df.shape[1] < 2 or all(df.columns.str.contains("Unnamed")):
             st.warning(f"No se encontraron datos en la hoja {hoja_nombre} o la hoja está vacía.")
             return pd.DataFrame()
+        
+        st.write(f"Columnas en {hoja_nombre}: ", list(df.columns))  # Verificación de columnas
         return df.copy()
     except Exception as e:
         st.error(f"Error al cargar datos de {hoja_nombre}: {e}")
@@ -69,7 +71,7 @@ def reporte_barriles(df):
     if 'Estado' in df.columns:
         df = df[df['Estado'] != 'Despachado']
     else:
-        st.warning("No se encontró la columna 'Estado' en los datos.")
+        st.warning("No se encontró la columna 'Estado' en los datos. Columnas disponibles: ", list(df.columns))
         return
     
     # Filtrar barriles en "Cuarto Frío"
