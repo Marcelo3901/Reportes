@@ -41,60 +41,43 @@ df_clientes = cargar_datos("RClientes")
 def reporte_barriles(df):
     st.subheader("Estado de los Barriles y Litros Totales")
     
-    # Renombrar columnas si es necesario
-    columnas_mapeo = {
-        "Código": "Codigo",
-        "Estilo.1": "Estilo",
-        "Cliente.1": "Cliente",
-        "Estado.1": "Estado",
-        "Responsable.1": "Responsable",
-        "Observaciones.2": "Observaciones"
-    }
-    df = df.rename(columns=columnas_mapeo)
-    
+    # Verificar que las columnas necesarias existan
     columnas_necesarias = {'Codigo', 'Estilo', 'Cliente', 'Estado', 'Responsable', 'Observaciones'}
-    
     if not columnas_necesarias.issubset(df.columns):
         st.warning("No hay datos de barriles disponibles o faltan columnas necesarias.")
         st.write("Columnas encontradas en la base de datos:", list(df.columns))
         return
     
-    # Eliminar filas duplicadas y mantener el último estado
+    # Ordenar por código y mantener el último estado
     df = df.sort_values(by=['Codigo'], ascending=[True]).drop_duplicates(subset=['Codigo'], keep='last')
-    
-    # Verificar si la columna 'Estado' existe antes de filtrar
-    if 'Estado' in df.columns:
-        df = df[df['Estado'] != 'Despachado']
-    else:
-        st.warning("No se encontró la columna 'Estado' en los datos.")
-        return
-    
+
+    # Filtrar los barriles que no han sido despachados
+    df = df[df['Estado'] != 'Despachado']
+
     # Filtrar barriles en "Cuarto Frío"
     df_cuarto_frio = df[df['Estado'] == 'Cuarto Frío'].copy()
-    
-    # Extraer litros del código (dos primeros dígitos) y convertir a número
+
+    # Extraer litros del código (dos primeros dígitos)
     df_cuarto_frio['Litros'] = pd.to_numeric(df_cuarto_frio['Codigo'].str[:2], errors='coerce')
-    
-    # Eliminar filas con valores nulos en Litros
+
+    # Eliminar valores nulos en 'Litros'
     df_cuarto_frio = df_cuarto_frio.dropna(subset=['Litros'])
-    
-    # Convertir a enteros
     df_cuarto_frio['Litros'] = df_cuarto_frio['Litros'].astype(int)
-    
+
     if df_cuarto_frio.empty:
         st.warning("No hay barriles en 'Cuarto Frío' disponibles para el reporte.")
         return
-    
+
     # Calcular litros por estilo
     litros_por_estilo = df_cuarto_frio.groupby('Estilo')['Litros'].sum().reset_index()
-    
+
     st.subheader("Litros por Estilo (Solo en Cuarto Frío)")
     st.dataframe(litros_por_estilo)
-    
+
     # Calcular litros totales
     litros_totales = df_cuarto_frio['Litros'].sum()
     st.write(f"**Litros Totales en Cuarto Frío:** {litros_totales} L")
-    
+
     # Gráfico de distribución
     fig = px.pie(df_cuarto_frio, names='Estilo', values='Litros', title="Distribución de Litros en Cuarto Frío")
     st.plotly_chart(fig)
