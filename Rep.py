@@ -62,7 +62,9 @@ def reporte_barriles(df):
             st.error("Error: No se encontró la columna 'Estado'. Verifica la hoja de cálculo.")
             return
         
-        df = df[df[col_estado] != 'Despachado']  # Filtrar barriles no despachados
+        # Filtrar barriles no despachados de forma segura
+        df = df[df[col_estado] != 'Despachado']
+
         estados = df[col_estado].value_counts().to_dict()
         for estado, cantidad in estados.items():
             st.write(f"**{estado}:** {cantidad} barriles")
