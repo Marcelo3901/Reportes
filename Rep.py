@@ -30,14 +30,18 @@ sheet_name = 'DatosM'  # Nombre de la hoja que contiene los datos de movimientos
 df = obtener_datos_de_hoja(sheet_url, sheet_name)
 
 if not df.empty:
-    # Preprocesar los datos para el reporte de inventario
+    # Convertir la columna "Marca temporal" a datetime
     try:
         df['Marca temporal'] = pd.to_datetime(df['Marca temporal'], format='%d/%m/%Y %H:%M:%S')
     except Exception as e:
         st.warning(f"⚠️ Error al convertir la columna 'Marca temporal': {e}")
     
-    df = df.sort_values('Marca temporal', ascending=False)  # Ordenar por marca temporal descendente
-    df = df.drop_duplicates(subset='Código', keep='first')   # Mantener el registro más reciente por código
+    # Ordenar los registros por 'Marca temporal' descendente y conservar el registro más reciente de cada barril
+    df = df.sort_values('Marca temporal', ascending=False)
+    df = df.drop_duplicates(subset='Código', keep='first')
+    
+    # Filtrar solo aquellos registros cuyo Estado sea "En cuarto frio"
+    df = df[df['Estado'].str.strip().str.lower() == 'en cuarto frio']
     
     # Función para determinar la capacidad del barril según los dos primeros dígitos del código
     def obtener_capacidad(codigo):
@@ -53,12 +57,13 @@ if not df.empty:
     
     df['Capacidad'] = df['Código'].apply(obtener_capacidad)
     
-    # Calcular los litros totales y los litros por estilo
+    # Calcular los litros totales y los litros por estilo solo para barriles en "En cuarto frio"
     litros_totales = df['Capacidad'].sum()
     litros_por_estilo = df.groupby('Estilo')['Capacidad'].sum()
     
     # Mostrar resultados en Streamlit
     st.title('Reporte de Inventario de Barriles')
+    
     st.subheader('Totales de Inventario (Cuarto Frío)')
     st.write(f"**Barriles Totales:** {df.shape[0]}")
     st.write(f"**Litros Totales:** {litros_totales} litros")
