@@ -40,10 +40,10 @@ def reporte_barriles(df):
     st.subheader("Estado de los Barriles y Litros Totales")
     if not df.empty and df.shape[1] >= 8:
         df = df.iloc[:, [0, 1, 3, 5, 6, 7, 8, 9]]  # Selección de columnas específicas
-        df.columns = ['Codigo', 'Estilo', 'Cliente', 'Estado', 'Responsable', 'Observaciones', 'Fecha', 'Dias']
+        df.columns = ['Código', 'Estilo', 'Cliente', 'Estado', 'Responsable', 'Observaciones', 'Fecha', 'Dias']
         
         # Filtrar último estado de cada barril
-        df = df.sort_values(by=['Codigo', 'Fecha'], ascending=[True, False]).drop_duplicates(subset=['Codigo'], keep='first')
+        df = df.sort_values(by=['Código', 'Fecha'], ascending=[True, False]).drop_duplicates(subset=['Código'], keep='first')
         
         # Excluir barriles despachados del inventario
         df = df[df['Estado'] != 'Despachado']
@@ -52,7 +52,7 @@ def reporte_barriles(df):
         df = df[df['Estado'] == 'Cuarto Frío']
         
         # Calcular litros según el código del barril
-        df['Litros'] = df['Codigo'].astype(str).str[:2].astype(int)
+        df['Litros'] = df['Código'].astype(str).str[:2].astype(int)
         
         # Litros por estilo
         litros_por_estilo = df.groupby('Estilo')['Litros'].sum().reset_index()
