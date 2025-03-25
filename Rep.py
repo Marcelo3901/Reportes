@@ -38,47 +38,49 @@ df_clientes = cargar_datos("RClientes")
 # Reporte de barriles
 def reporte_barriles(df):
     st.subheader("Estado de los Barriles y Litros Totales")
-    if not df.empty and df.shape[1] >= 8:
-        df = df.iloc[:, [0, 1, 3, 5, 6, 7, 8, 9]]  # Selección de columnas específicas
-        df.columns = ['Codigo', 'Estilo', 'Cliente', 'Estado', 'Responsable', 'Observaciones', 'Fecha', 'Dias']
+    if not df.empty and 'Codigo' in df.columns and 'Estado' in df.columns and 'Fecha' in df.columns:
+        df = df[['Codigo', 'Estilo', 'Cliente', 'Estado', 'Responsable', 'Observaciones', 'Fecha', 'Dias']].copy()
         
-        # Limpiar la columna "Codigo"
-        df['Codigo'] = df['Codigo'].astype(str).str.strip()
+        # Convertir fecha a formato datetime para ordenar correctamente
+        df['Fecha'] = pd.to_datetime(df['Fecha'], errors='coerce')
+        df = df.dropna(subset=['Fecha'])
         
-        # Filtrar último estado de cada barril
-        df = df.sort_values(by=['Codigo', 'Fecha'], ascending=[True, False]).drop_duplicates(subset=['Codigo'], keep='first')
+        # Ordenar por Código y Fecha
+        df = df.sort_values(by=['Codigo', 'Fecha'], ascending=[True, False])
         
-        # Excluir barriles despachados del inventario
+        # Obtener únicamente el último estado de cada barril
+        df = df.drop_duplicates(subset=['Codigo'], keep='first')
+        
+        # Excluir barriles que ya fueron despachados
         df = df[df['Estado'] != 'Despachado']
         
         # Filtrar barriles en "Cuarto Frío"
-        df = df[df['Estado'] == 'Cuarto Frío']
+        df_cuarto_frio = df[df['Estado'] == 'Cuarto Frío'].copy()
         
-        # Extraer los litros del código (dos primeros dígitos)
-        df['Litros'] = df['Codigo'].str[:2]
+        # Extraer litros del código (dos primeros dígitos) y convertir a número
+        df_cuarto_frio['Litros'] = pd.to_numeric(df_cuarto_frio['Codigo'].str[:2], errors='coerce')
         
-        # Convertir la columna "Litros" a numérico, ignorando errores
-        df['Litros'] = pd.to_numeric(df['Litros'], errors='coerce')
-        
-        # Eliminar filas donde Litros no sea numérico
-        df = df.dropna(subset=['Litros'])
+        # Eliminar filas con valores nulos en Litros
+        df_cuarto_frio = df_cuarto_frio.dropna(subset=['Litros'])
         
         # Convertir a enteros
-        df['Litros'] = df['Litros'].astype(int)
+        df_cuarto_frio['Litros'] = df_cuarto_frio['Litros'].astype(int)
         
-        # Litros por estilo
-        litros_por_estilo = df.groupby('Estilo')['Litros'].sum().reset_index()
+        # Calcular litros por estilo
+        litros_por_estilo = df_cuarto_frio.groupby('Estilo')['Litros'].sum().reset_index()
+        
         st.subheader("Litros por Estilo (Solo en Cuarto Frío)")
         st.dataframe(litros_por_estilo)
         
-        # Litros totales
-        litros_totales = df['Litros'].sum()
+        # Calcular litros totales
+        litros_totales = df_cuarto_frio['Litros'].sum()
         st.write(f"**Litros Totales en Cuarto Frío:** {litros_totales} L")
         
-        fig = px.pie(df, names='Estado', title="Distribución de Barriles en Cuarto Frío")
+        # Gráfico de distribución
+        fig = px.pie(df_cuarto_frio, names='Estilo', values='Litros', title="Distribución de Litros en Cuarto Frío")
         st.plotly_chart(fig)
     else:
-        st.warning("No hay datos de barriles disponibles o falta la columna correspondiente.")
+        st.warning("No hay datos de barriles disponibles o faltan columnas necesarias.")
 
 # Interfaz principal de la aplicación
 st.title("📊 Reportes de la Cervecería")
