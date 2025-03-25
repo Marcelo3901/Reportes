@@ -2,25 +2,28 @@ import gspread
 import pandas as pd
 import streamlit as st
 
-# URL de la hoja de Google Sheets (ID de la hoja)
+# Función para obtener los datos de Google Sheets sin necesidad de credenciales
+def obtener_datos_de_hoja(sheet_id, sheet_name):
+    # Conexión con Google Sheets (acceso público)
+    gc = gspread.authorize(None)  # Asegúrate de que la hoja esté pública
+    worksheet = gc.open_by_key(sheet_id).worksheet(sheet_name)
+    
+    # Leer todos los registros de la hoja y convertirlos a un DataFrame
+    data = worksheet.get_all_records()
+    df = pd.DataFrame(data)
+    
+    return df
+
+# ID de la hoja de Google Sheets (obténlo de la URL)
 sheet_id = '1FjQ8XBDwDdrlJZsNkQ6YyaygkHLhpKmfLBv6wd3uluY'
 
-# Nombre de la hoja donde se encuentran los datos (por ejemplo, DatosM)
-range_name = 'DatosM'
+# Nombre de la hoja en el Google Sheets que quieres usar (por ejemplo, DatosM)
+sheet_name = 'DatosM'
 
-# Conexión con Google Sheets (acceso público)
-gc = gspread.authorize(None)
-
-# Abrir la hoja de cálculo usando el ID de la hoja
-worksheet = gc.open_by_key(sheet_id).worksheet(range_name)
-
-# Leer todos los registros de la hoja y convertirlos a un DataFrame
-data = worksheet.get_all_records()
-df = pd.DataFrame(data)
+# Llamar la función para obtener los datos
+df = obtener_datos_de_hoja(sheet_id, sheet_name)
 
 # Preprocesar los datos para el reporte de inventario
-
-# Asegurarse de que solo tomamos el último estado del barril
 df['Marca temporal'] = pd.to_datetime(df['Marca temporal'], format='%d/%m/%Y %H:%M:%S')
 df = df.sort_values('Marca temporal', ascending=False)  # Ordenar los registros por la marca temporal
 df = df.drop_duplicates(subset='Código', keep='first')  # Eliminar registros duplicados, manteniendo solo el más reciente
