@@ -39,7 +39,14 @@ df_barriles = cargar_datos("DatosM")
 df_ventas_latas = cargar_datos("VLatas")
 df_clientes = cargar_datos("RClientes")
 
-   # Reporte de barriles
+# Verificación de datos cargados en DatosM
+st.subheader("Vista previa de DatosM")
+if not df_barriles.empty:
+    st.write(df_barriles.head())  # Mostrar las primeras filas para depuración
+else:
+    st.error("No se pudieron cargar los datos de la hoja DatosM. Verifica la conexión y el formato de la hoja.")
+
+# Reporte de barriles
 def reporte_barriles(df):
     st.subheader("Estado de los Barriles")
     if not df.empty:
@@ -61,7 +68,6 @@ def reporte_barriles(df):
 
         fig = px.pie(df, names=col_estado, title="Distribución de Barriles por Estado")
         st.plotly_chart(fig)
-
 
 # Interfaz principal de la aplicación
 st.title("📊 Reportes de la Cervecería")
