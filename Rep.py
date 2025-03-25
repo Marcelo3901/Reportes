@@ -26,7 +26,7 @@ def cargar_datos(hoja_nombre):
         if df.empty or df.shape[1] < 2 or all(df.columns.str.contains("Unnamed")):
             st.warning(f"No se encontraron datos en la hoja {hoja_nombre} o la hoja está vacía.")
             return pd.DataFrame()
-        return df
+        return df.copy()
     except Exception as e:
         st.error(f"Error al cargar datos de {hoja_nombre}: {e}")
         return pd.DataFrame()
@@ -62,8 +62,12 @@ def reporte_barriles(df):
     # Eliminar filas duplicadas y mantener el último estado
     df = df.sort_values(by=['Codigo'], ascending=[True]).drop_duplicates(subset=['Codigo'], keep='last')
     
-    # Excluir barriles que ya fueron despachados
-    df = df[df['Estado'] != 'Despachado']
+    # Verificar si la columna 'Estado' existe antes de filtrar
+    if 'Estado' in df.columns:
+        df = df[df['Estado'] != 'Despachado']
+    else:
+        st.warning("No se encontró la columna 'Estado' en los datos.")
+        return
     
     # Filtrar barriles en "Cuarto Frío"
     df_cuarto_frio = df[df['Estado'] == 'Cuarto Frío'].copy()
