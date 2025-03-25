@@ -40,10 +40,13 @@ def reporte_barriles(df):
     st.subheader("Estado de los Barriles y Litros Totales")
     if not df.empty and df.shape[1] >= 8:
         df = df.iloc[:, [0, 1, 3, 5, 6, 7, 8, 9]]  # Selección de columnas específicas
-        df.columns = ['Código', 'Estilo', 'Cliente', 'Estado', 'Responsable', 'Observaciones', 'Fecha', 'Dias']
+        df.columns = ['Codigo', 'Estilo', 'Cliente', 'Estado', 'Responsable', 'Observaciones', 'Fecha', 'Dias']
+        
+        # Limpiar la columna "Codigo"
+        df['Codigo'] = df['Codigo'].astype(str).str.strip()
         
         # Filtrar último estado de cada barril
-        df = df.sort_values(by=['Código', 'Fecha'], ascending=[True, False]).drop_duplicates(subset=['Código'], keep='first')
+        df = df.sort_values(by=['Codigo', 'Fecha'], ascending=[True, False]).drop_duplicates(subset=['Codigo'], keep='first')
         
         # Excluir barriles despachados del inventario
         df = df[df['Estado'] != 'Despachado']
@@ -51,8 +54,17 @@ def reporte_barriles(df):
         # Filtrar barriles en "Cuarto Frío"
         df = df[df['Estado'] == 'Cuarto Frío']
         
-        # Calcular litros según el código del barril
-        df['Litros'] = df['Código'].astype(str).str[:2].astype(int)
+        # Extraer los litros del código (dos primeros dígitos)
+        df['Litros'] = df['Codigo'].str[:2]
+        
+        # Convertir la columna "Litros" a numérico, ignorando errores
+        df['Litros'] = pd.to_numeric(df['Litros'], errors='coerce')
+        
+        # Eliminar filas donde Litros no sea numérico
+        df = df.dropna(subset=['Litros'])
+        
+        # Convertir a enteros
+        df['Litros'] = df['Litros'].astype(int)
         
         # Litros por estilo
         litros_por_estilo = df.groupby('Estilo')['Litros'].sum().reset_index()
