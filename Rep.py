@@ -40,11 +40,11 @@ df_clientes = cargar_datos("RClientes")
 # Reporte de inventario de latas
 def reporte_inventario_latas(df):
     st.subheader("Inventario de Latas en Cuarto Frío")
-    columnas_requeridas = {"Estilo", "Cantidad", "Lote", "Responsable"}
-    if not df.empty and columnas_requeridas.issubset(df.columns):
-        df['Cantidad'] = pd.to_numeric(df['Cantidad'], errors='coerce').fillna(0).astype(int)
+    if not df.empty and df.shape[1] >= 5:
+        df.columns = ['A', 'B', 'C', 'D', 'E']  # Renombrar columnas por letras
+        df['C'] = pd.to_numeric(df['C'], errors='coerce').fillna(0).astype(int)
         st.dataframe(df)
-        fig = px.bar(df, x='Estilo', y='Cantidad', color='Lote', title="Cantidad de Latas por Estilo y Lote")
+        fig = px.bar(df, x='B', y='C', color='D', title="Cantidad de Latas por Estilo y Lote")
         st.plotly_chart(fig)
     else:
         st.warning("No hay datos de latas disponibles o faltan columnas esperadas.")
@@ -52,22 +52,25 @@ def reporte_inventario_latas(df):
 # Reporte de barriles
 def reporte_barriles(df):
     st.subheader("Estado de los Barriles")
-    if not df.empty and 'Estado' in df.columns:
-        estados = df['Estado'].value_counts().to_dict()
+    if not df.empty and df.shape[1] >= 8:
+        df = df.iloc[:, [0, 1, 3, 5, 6, 7, 8, 9]]  # Selección de columnas específicas
+        df.columns = ['A', 'B', 'D', 'F', 'G', 'H', 'I', 'J']  # Renombrar columnas por letras
+        estados = df['G'].value_counts().to_dict()
         for estado, cantidad in estados.items():
             st.write(f"**{estado}:** {cantidad} barriles")
         
-        fig = px.pie(df, names='Estado', title="Distribución de Barriles por Estado")
+        fig = px.pie(df, names='G', title="Distribución de Barriles por Estado")
         st.plotly_chart(fig)
     else:
-        st.warning("No hay datos de barriles disponibles o falta la columna 'Estado'.")
+        st.warning("No hay datos de barriles disponibles o falta la columna correspondiente.")
 
 # Reporte de ventas de latas
 def reporte_ventas_latas(df):
     st.subheader("Ventas y Despachos de Latas")
-    if not df.empty and {'Cliente', 'Cantidad', 'Estado'}.issubset(df.columns):
-        df['Cantidad'] = pd.to_numeric(df['Cantidad'], errors='coerce').fillna(0).astype(int)
-        fig = px.bar(df, x='Cliente', y='Cantidad', color='Estado', title="Ventas de Latas por Cliente")
+    if not df.empty and df.shape[1] >= 6:
+        df.columns = ['A', 'B', 'C', 'D', 'E', 'F']  # Renombrar columnas por letras
+        df['C'] = pd.to_numeric(df['C'], errors='coerce').fillna(0).astype(int)
+        fig = px.bar(df, x='E', y='C', color='F', title="Ventas de Latas por Cliente")
         st.plotly_chart(fig)
     else:
         st.warning("No hay datos de ventas de latas disponibles o faltan columnas esperadas.")
@@ -75,27 +78,30 @@ def reporte_ventas_latas(df):
 # Lista de clientes
 def reporte_clientes(df):
     st.subheader("Lista de Clientes Registrados")
-    if not df.empty and {'Nombre', 'Dirección'}.issubset(df.columns):
-        st.dataframe(df[['Nombre', 'Dirección']])
+    if not df.empty and df.shape[1] >= 2:
+        df.columns = ['A', 'B']  # Renombrar columnas por letras
+        st.dataframe(df[['A', 'B']])
     else:
         st.warning("No hay clientes registrados o faltan columnas esperadas.")
 
 # Alertas de barriles en clientes
 def generar_alertas(df):
     st.subheader("Alertas de Barriles")
-    if not df.empty and 'Días en Cliente' in df.columns:
-        df['Días en Cliente'] = pd.to_numeric(df['Días en Cliente'], errors='coerce').fillna(0).astype(int)
-        alertas = df[df['Días en Cliente'] > 180]
+    if not df.empty and df.shape[1] >= 8:
+        df = df.iloc[:, [0, 1, 3, 5, 6, 7, 8, 9]]  # Selección de columnas específicas
+        df.columns = ['A', 'B', 'D', 'F', 'G', 'H', 'I', 'J']  # Renombrar columnas por letras
+        df['J'] = pd.to_numeric(df['J'], errors='coerce').fillna(0).astype(int)
+        alertas = df[df['J'] > 180]
         if not alertas.empty:
             st.write("🔴 Barriles con clientes por más de 6 meses:")
             st.dataframe(alertas)
         
-        if 'Capacidad' in df.columns:
-            df['Capacidad'] = pd.to_numeric(df['Capacidad'], errors='coerce').fillna(0)
-            if df['Capacidad'].sum() < 200:
+        if 'E' in df.columns:
+            df['E'] = pd.to_numeric(df['E'], errors='coerce').fillna(0)
+            if df['E'].sum() < 200:
                 st.write("⚠️ Riesgo de quiebre de stock: menos de 200L disponibles.")
     else:
-        st.warning("No hay datos disponibles para generar alertas o falta la columna 'Días en Cliente'.")
+        st.warning("No hay datos disponibles para generar alertas o falta la columna correspondiente.")
 
 # Interfaz principal de la aplicación
 st.title("📊 Reportes de la Cervecería")
