@@ -95,7 +95,7 @@ if not df.empty:
     df_litros.columns = ["Estilo", "Litros"]
 
     # Agregar una columna "Alerta" que muestre un símbolo si los litros son menores a 200.
-    df_litros["Alerta"] = df_litros["Litros"].apply(lambda x: "⚠️" if x < 200 else "")
+    df_litros["Bajo Inventario"] = df_litros["Litros"].apply(lambda x: "⚠️" if x < 200 else "")
 
     st.subheader("Litros por Estilo con Alerta")
     st.write(df_litros)
