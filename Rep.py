@@ -30,10 +30,10 @@ def obtener_datos_de_hoja(sheet_url, sheet_name):
         st.write(df.head(10))
         
         # Verificar que existan las columnas requeridas.
-        requeridas = ["Código", "Marca temporal", "Estado", "Estado.1", "Estilo", "Estilo.1"]
-        faltantes = [col for col in requeridas if col not in df.columns]
-        if faltantes:
-            st.error(f"Faltan columnas requeridas: {faltantes}")
+        required = ["Código", "Marca temporal", "Estado", "Estado.1", "Estilo", "Estilo.1"]
+        missing = [col for col in required if col not in df.columns]
+        if missing:
+            st.error(f"Faltan columnas requeridas: {missing}")
             return pd.DataFrame()
         
         # Eliminar filas donde "Código" sea nulo o vacío.
