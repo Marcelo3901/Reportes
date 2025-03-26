@@ -75,13 +75,13 @@ if not df.empty:
     
     st.write("Valores únicos en Estado_final:", df["Estado_final"].unique())
     
-    # Filtrar solo los registros cuyo Estado_final sea "en cuarto frio".
-    df_cf = df[df["Estado_final"] == "en cuarto frio"]
-    st.write("Número de registros con Estado 'en cuarto frio':", df_cf.shape[0])
+    # Filtrar solo los registros cuyo Estado_final sea "en cuarto frío".
+    df_cf = df[df["Estado_final"] == "en cuarto frío"]
+    st.write("Número de registros con Estado 'en cuarto frío':", df_cf.shape[0])
     
     # Función para determinar la capacidad (litros) según los dos primeros dígitos del código.
-    def obtener_capacidad(codigo):
-        codigo_str = str(codigo).strip()
+    def obtener_capacidad(Código):
+        codigo_str = str(Código).strip()
         if codigo_str.startswith("20"):
             return 20
         elif codigo_str.startswith("30"):
