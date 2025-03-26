@@ -108,6 +108,10 @@ if not df.empty:
 
     st.subheader("Litros por Estilo con Alerta y número de barriles (ordenado de mayor a menor)")
     st.write(df_litros)
+    
+    st.subheader("Resumen del Inventario")
+    st.write(f"**Barriles Totales:** {total_barriles}")
+    st.write(f"**Litros Totales:** {litros_totales} litros")
      
 else:
     st.error("No se cargaron datos.")
