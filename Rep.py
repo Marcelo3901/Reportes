@@ -80,8 +80,8 @@ if not df.empty:
     st.write("Número de registros con Estado 'en cuarto frío':", df_cf.shape[0])
     
     # Función para determinar la capacidad (litros) según los dos primeros dígitos del código.
-    def obtener_capacidad(codigo):
-        codigo_str = str(codigo).strip()
+    def obtener_capacidad(Código):
+        codigo_str = str(Código).strip()
         if codigo_str.startswith("20"):
             return 20
         elif codigo_str.startswith("30"):
