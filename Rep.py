@@ -114,7 +114,7 @@ if not df.empty:
     st.write(f"**Litros Totales:** {litros_totales} litros")
 
     st.markdown("---")
-    st.subheader("Gráfico de Barras: Número de Barriles por Estilo")
+    st.subheader("Barriles por Estilo")
     st.bar_chart(df_litros.set_index("Estilo")["Barriles"])
      
 else:
