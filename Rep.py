@@ -92,15 +92,17 @@ if not df.empty:
 
     st.subheader("Litros por Estilo")
     st.write(litros_por_estilo)
-    
-    st.subheader("Detalle del Inventario")
-    st.write(df_cf[["Marca temporal", "Código", "Estilo_final", "Estado_final", "Litros"]])
 
-      # Mostrar resultados en Streamlit.
+     # Mostrar resultados en Streamlit.
     st.title("Reporte de Inventario de Barriles en Cuarto Frío")
     st.subheader("Resumen del Inventario")
     st.write(f"**Barriles Totales:** {total_barriles}")
     st.write(f"**Litros Totales:** {litros_totales} litros")
     
+    
+    st.subheader("Detalle del Inventario")
+    st.write(df_cf[["Marca temporal", "Código", "Estilo_final", "Estado_final", "Litros"]])
+
+     
 else:
     st.error("No se cargaron datos.")
