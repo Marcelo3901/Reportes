@@ -9,6 +9,18 @@ except ModuleNotFoundError:
     def unidecode(text):
         return text
 
+# Intentar importar plotly.express para gráficos interactivos
+try:
+    import plotly.express as px
+except ModuleNotFoundError:
+    st.warning("El módulo 'plotly.express' no se encontró. Instálalo para obtener gráficos interactivos.")
+
+# Intentar importar altair para gráficos interactivos
+try:
+    import altair as alt
+except ModuleNotFoundError:
+    st.warning("El módulo 'altair' no se encontró. Instálalo para obtener gráficos interactivos.")
+
 # Función auxiliar: devuelve el primer valor no vacío entre los argumentos.
 def primer_no_vacio(*args):
     for a in args:
@@ -51,7 +63,6 @@ sheet_name = "DatosM"  # Verifica que el nombre coincida exactamente con el de l
 
 # Obtener los datos.
 df = obtener_datos_de_hoja(sheet_url, sheet_name)
-
 st.write("Dimensiones del DataFrame:", df.shape)
 
 if not df.empty:
@@ -110,5 +121,7 @@ if not df.empty:
     
     st.subheader("Detalle del Inventario")
     st.write(df_cf[["Marca temporal", "Código", "Estilo_final", "Estado_final", "Litros"]])
-else:
-    st.error("No se cargaron datos.")
+    
+    # Opciones de visualización:
+    st.markdown("---")
+    st.subheader("
