@@ -194,3 +194,48 @@ try:
     st.plotly_chart(fig_bubble)
 except Exception as e:
     st.warning(f"No se pudo crear el bubble chart: {e}")
+
+# Suponiendo que 'df' es el DataFrame original con todos los datos procesados
+# y que ya se ha convertido 'Marca temporal' a datetime y se ha calculado "Litros".
+# También asumimos que "df" contiene la información de inventario o producción.
+
+# Crear una copia para trabajar con series temporales
+df_time = df.copy()
+
+# Extraer la fecha (sin tiempo) para facilitar el agrupamiento
+df_time['Fecha'] = df_time['Marca temporal'].dt.date
+
+# Agregar columnas para semana y mes (usando períodos)
+df_time['Semana'] = df_time['Marca temporal'].dt.to_period('W').apply(lambda r: r.start_time)
+df_time['Mes'] = df_time['Marca temporal'].dt.to_period('M').apply(lambda r: r.start_time)
+
+# Agrupar por semana: sumar los litros producidos/inventariados en esa semana.
+produccion_semanal = df_time.groupby('Semana')['Litros'].sum().reset_index()
+# Agrupar por mes.
+produccion_mensual = df_time.groupby('Mes')['Litros'].sum().reset_index()
+
+# Mostrar gráficos de línea usando la función nativa de Streamlit:
+st.subheader("Producción Semanal (Litros)")
+st.line_chart(produccion_semanal.set_index('Semana'))
+
+st.subheader("Producción Mensual (Litros)")
+st.line_chart(produccion_mensual.set_index('Mes'))
+
+# Opcional: usar Plotly Express para gráficos más interactivos.
+try:
+    import plotly.express as px
+
+    # Gráfico interactivo de producción semanal.
+    fig_sem = px.line(produccion_semanal, x='Semana', y='Litros',
+                      title='Producción Semanal (Litros)',
+                      labels={'Semana': 'Semana', 'Litros': 'Litros'})
+    st.plotly_chart(fig_sem)
+    
+    # Gráfico interactivo de producción mensual.
+    fig_mes = px.line(produccion_mensual, x='Mes', y='Litros',
+                      title='Producción Mensual (Litros)',
+                      labels={'Mes': 'Mes', 'Litros': 'Litros'})
+    st.plotly_chart(fig_mes)
+except Exception as e:
+    st.warning(f"No se pudo crear los gráficos interactivos con Plotly: {e}")
+    
