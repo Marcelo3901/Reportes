@@ -113,9 +113,26 @@ if not df.empty:
     st.write(f"**Barriles Totales:** {total_barriles}")
     st.write(f"**Litros Totales:** {litros_totales} litros")
 
-    st.markdown("---")
-    st.subheader("Barriles por Estilo")
-    st.bar_chart(df_litros.set_index("Estilo")["Barriles"])
+  st.markdown("<hr>", unsafe_allow_html=True)
+    st.markdown("<h3 style='color: #2c3e50; font-family: Verdana;'>Gráfico de Barras: Número de Barriles por Estilo</h3>", unsafe_allow_html=True)
+    try:
+        import plotly.express as px
+        fig_bar = px.bar(df_litros, x="Estilo", y="Barriles", color="Estilo",
+                         title="Número de Barriles por Estilo",
+                         text="Barriles",
+                         labels={"Barriles": "Número de Barriles", "Estilo": "Estilo de Cerveza"})
+        fig_bar.update_traces(texttemplate='%{text}', textposition='outside')
+        fig_bar.update_layout(
+            title_font=dict(family="Verdana", size=24, color="#2c3e50"),
+            font=dict(family="Verdana", size=14, color="#34495e"),
+            xaxis_title="Estilo",
+            yaxis_title="Número de Barriles",
+            plot_bgcolor="rgba(0,0,0,0)",
+            paper_bgcolor="rgba(0,0,0,0)"
+        )
+        st.plotly_chart(fig_bar, use_container_width=True)
+    except Exception as e:
+        st.warning(f"No se pudo crear el gráfico de barras interactivo con Plotly: {e}")
      
 else:
     st.error("No se cargaron datos.")
