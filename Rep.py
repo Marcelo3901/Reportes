@@ -23,7 +23,7 @@ def obtener_datos_de_hoja(sheet_url, sheet_name):
         return pd.DataFrame()
 
 # URL base de la hoja de Google Sheets (sin la parte final "/edit?...")
-sheet_url = 'https://docs.google.com/spreadsheets/d/1FjQ8XBDwDdrlJZsNkQ6YyaygkHLhpKmfLBv6wd3uluY'
+sheet_url = 'https://docs.google.com/spreadsheets/d/1FjQ8XBDwDdrlJZsNkQ6YyaygkHLhpKmfLBv6wd3uluY/edit?usp=sharing'
 sheet_name = 'DatosM'  # Nombre de la hoja que contiene los datos de movimientos de barriles
 
 # Obtener los datos de la hoja
