@@ -23,10 +23,7 @@ def obtener_datos_de_hoja(sheet_url, sheet_name):
         df = pd.read_csv(url)
         df.columns = df.columns.str.strip()  # Limpiar espacios en los nombres de las columnas.
         
-        st.write("Columnas detectadas:", list(df.columns))
-        st.write("Vista previa de las primeras filas:")
-        st.write(df.head(10))
-        
+       
         # Verificar que existan las columnas requeridas.
         requeridas = ["Código", "Marca temporal", "Estado", "Estado.1", "Estilo", "Estilo.1"]
         faltantes = [col for col in requeridas if col not in df.columns]
