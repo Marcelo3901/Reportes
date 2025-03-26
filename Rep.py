@@ -110,44 +110,5 @@ if not df.empty:
     st.subheader("Detalle del Inventario")
     st.write(df_cf[["Marca temporal", "Código", "Estilo_final", "Estado_final", "Litros"]])
     
-   # --- Visualizaciones temporales (semanales y mensuales) ---
-st.markdown("---")
-st.subheader("Visualizaciones Temporales")
-
-# Usar df_cf (ya filtrado y con la columna "Litros") para la serie temporal.
-df_time = df_cf.copy()
-# Extraer la fecha de la columna "Marca temporal" (ya en datetime)
-df_time['Fecha'] = df_time['Marca temporal'].dt.date
-
-# Crear columnas para la semana y el mes, utilizando la columna "Marca temporal"
-df_time['Semana'] = df_time['Marca temporal'].dt.to_period('W').apply(lambda r: r.start_time)
-df_time['Mes'] = df_time['Marca temporal'].dt.to_period('M').apply(lambda r: r.start_time)
-
-# Agrupar por semana y mes sumando la columna "Litros"
-produccion_semanal = df_time.groupby('Semana')['Litros'].sum().reset_index()
-produccion_mensual = df_time.groupby('Mes')['Litros'].sum().reset_index()
-
-st.subheader("Producción Semanal (Litros)")
-st.line_chart(produccion_semanal.set_index('Semana'))
-
-st.subheader("Producción Mensual (Litros)")
-st.line_chart(produccion_mensual.set_index('Mes'))
-
-# Gráficos interactivos con Plotly Express (si está instalado)
-try:
-    import plotly.express as px
-    # Gráfico interactivo de producción semanal.
-    fig_sem = px.line(produccion_semanal, x='Semana', y='Litros',
-                      title='Producción Semanal (Litros)',
-                      labels={'Semana': 'Semana', 'Litros': 'Litros'})
-    st.plotly_chart(fig_sem)
-    
-    # Gráfico interactivo de producción mensual.
-    fig_mes = px.line(produccion_mensual, x='Mes', y='Litros',
-                      title='Producción Mensual (Litros)',
-                      labels={'Mes': 'Mes', 'Litros': 'Litros'})
-    st.plotly_chart(fig_mes)
-except Exception as e:
-    st.warning(f"No se pudo crear los gráficos interactivos con Plotly: {e}")
 else:
     st.error("No se cargaron datos.")
