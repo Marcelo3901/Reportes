@@ -1,5 +1,6 @@
 import pandas as pd
 import streamlit as st
+from unidecode import unidecode
 
 # Función auxiliar: devuelve el primer valor no vacío entre los argumentos
 def primer_no_vacio(*args):
@@ -22,7 +23,7 @@ def obtener_datos_de_hoja(sheet_url, sheet_name):
         st.write(df.head(10))
         
         # Verificar que existan las columnas requeridas
-        required = ["Código", "Marca temporal"]
+        required = ["Código", "Marca temporal", "Estado", "Estado.1", "Estilo", "Estilo.1"]
         missing = [col for col in required if col not in df.columns]
         if missing:
             st.error(f"Faltan columnas requeridas: {missing}")
@@ -39,12 +40,14 @@ def obtener_datos_de_hoja(sheet_url, sheet_name):
 
 # Parámetros: URL base de la hoja y nombre de la hoja (debe coincidir exactamente)
 sheet_url = "https://docs.google.com/spreadsheets/d/1FjQ8XBDwDdrlJZsNkQ6YyaygkHLhpKmfLBv6wd3uluY"
-sheet_name = "DatosM"  # Revisa que el nombre sea exactamente igual al de la pestaña en el Sheet
+sheet_name = "DatosM"  # Asegúrate de que el nombre coincide exactamente con el de la pestaña
 
-# Obtener datos
+# Obtener los datos
 df = obtener_datos_de_hoja(sheet_url, sheet_name)
 
-# Verificar si se cargaron datos
+# Mostrar vista previa de los datos leídos
+st.write("Dimensiones del DataFrame:", df.shape)
+
 if not df.empty:
     # Convertir "Marca temporal" a datetime
     try:
@@ -58,18 +61,19 @@ if not df.empty:
     
     # Crear columnas "Estado_final" y "Estilo_final" combinando las posibles variantes
     df["Estado_final"] = df.apply(lambda row: primer_no_vacio(row.get("Estado", ""), row.get("Estado.1", "")), axis=1)
-    df["Estado_final"] = df["Estado_final"].str.strip().str.lower()  # Normalizar
     df["Estilo_final"] = df.apply(lambda row: primer_no_vacio(row.get("Estilo", ""), row.get("Estilo.1", "")), axis=1)
-    df["Estilo_final"] = df["Estilo_final"].str.strip()  # Normalizar (se conserva el formato original o se puede usar lower() si se prefiere)
     
-    # Depuración: mostrar valores únicos de Estado_final
+    # Normalizar: quitar espacios, pasar a minúsculas y eliminar acentos
+    df["Estado_final"] = df["Estado_final"].str.strip().str.lower().apply(unidecode)
+    df["Estilo_final"] = df["Estilo_final"].str.strip().apply(unidecode)
+    
     st.write("Valores únicos en Estado_final:", df["Estado_final"].unique())
     
-    # Filtrar solo aquellos registros cuyo Estado_final sea "en cuarto frio"
+    # Filtrar solo los registros cuyo Estado_final sea "en cuarto frio"
     df_cf = df[df["Estado_final"] == "en cuarto frio"]
     st.write("Número de registros con Estado 'en cuarto frio':", df_cf.shape[0])
     
-    # Función para determinar la capacidad del barril según los dos primeros dígitos del código
+    # Función para determinar la capacidad (litros) según los dos primeros dígitos del código
     def obtener_capacidad(codigo):
         codigo_str = str(codigo).strip()
         if codigo_str.startswith("20"):
@@ -81,7 +85,7 @@ if not df.empty:
         else:
             return 0  # Si no es un código reconocido
     
-    # Aplicar la función para calcular la capacidad (litros) de cada barril
+    # Calcular la capacidad de cada barril y almacenarla en la columna "Litros"
     df_cf["Litros"] = df_cf["Código"].apply(obtener_capacidad)
     
     # Calcular totales
