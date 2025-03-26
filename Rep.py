@@ -100,7 +100,7 @@ if not df.empty:
     # Ordenar de mayor a menor según "Litros".
     df_litros = df_litros.sort_values(by="Litros", ascending=False)
 
-    st.subheader("Litros por Estilo con Alerta (ordenado de mayor a menor)")
+    st.subheader("Litros por Estilo con Alerta")
     st.write(df_litros)
     
     # Mostrar resultados en Streamlit.
