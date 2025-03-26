@@ -89,18 +89,18 @@ if not df.empty:
     total_barriles = df_cf.shape[0]
     litros_totales = df_cf["Litros"].sum()
     litros_por_estilo = df_cf.groupby("Estilo_final")["Litros"].sum()
-    
-    # Mostrar resultados en Streamlit.
-    st.title("Reporte de Inventario de Barriles en Cuarto Frío")
-    st.subheader("Resumen del Inventario")
-    st.write(f"**Barriles Totales:** {total_barriles}")
-    st.write(f"**Litros Totales:** {litros_totales} litros")
-    
+
     st.subheader("Litros por Estilo")
     st.write(litros_por_estilo)
     
     st.subheader("Detalle del Inventario")
     st.write(df_cf[["Marca temporal", "Código", "Estilo_final", "Estado_final", "Litros"]])
+
+      # Mostrar resultados en Streamlit.
+    st.title("Reporte de Inventario de Barriles en Cuarto Frío")
+    st.subheader("Resumen del Inventario")
+    st.write(f"**Barriles Totales:** {total_barriles}")
+    st.write(f"**Litros Totales:** {litros_totales} litros")
     
 else:
     st.error("No se cargaron datos.")
