@@ -57,4 +57,31 @@ st.write("Dimensiones del DataFrame:", df.shape)
 if not df.empty:
     # Convertir "Marca temporal" a datetime.
     try:
-        df['Marca temporal'] = pd.to_datetime(df['Marca temporal'], format='%d/%m/%Y %H:%_
+        df['Marca temporal'] = pd.to_datetime(df['Marca temporal'], format='%d/%m/%Y %H:%M:%S')
+    except Exception as e:
+        st.error(f"Error al convertir 'Marca temporal': {e}")
+    
+    # Ordenar por "Marca temporal" descendente y conservar solo el registro más reciente por "Código".
+    df = df.sort_values('Marca temporal', ascending=False)
+    df = df.drop_duplicates(subset='Código', keep='first')
+    
+    # Crear columnas "Estado_final" y "Estilo_final" combinando las variantes existentes.
+    df["Estado_final"] = df.apply(lambda row: primer_no_vacio(row.get("Estado", ""), row.get("Estado.1", "")), axis=1)
+    df["Estilo_final"] = df.apply(lambda row: primer_no_vacio(row.get("Estilo", ""), row.get("Estilo.1", "")), axis=1)
+    
+    # Normalizar: quitar espacios, pasar a minúsculas y eliminar acentos (si unidecode está disponible).
+    df["Estado_final"] = df["Estado_final"].str.strip().str.lower().apply(unidecode)
+    df["Estilo_final"] = df["Estilo_final"].str.strip().apply(unidecode)
+    
+    st.write("Valores únicos en Estado_final:", df["Estado_final"].unique())
+    
+    # Filtrar solo los registros cuyo Estado_final sea "en cuarto frío".
+    df_cf = df[df["Estado_final"] == "en cuarto frío"]
+    st.write("Número de registros con Estado 'en cuarto frío':", df_cf.shape[0])
+    
+    # Función para determinar la capacidad (litros) según los dos primeros dígitos del código.
+    def obtener_capacidad(codigo):
+        codigo_str = str(codigo).strip()
+        if codigo_str.startswith("20"):
+            return 20
+        elif codigo_str.startswith("_
