@@ -85,7 +85,7 @@ if not df.empty:
     # Calcular la capacidad de cada barril y almacenarla en la columna "Litros".
     df_cf["Litros"] = df_cf["Código"].apply(obtener_capacidad)
 
-    # Calcular totales.
+   # Calcular totales.
     total_barriles = df_cf.shape[0]
     litros_totales = df_cf["Litros"].sum()
     litros_por_estilo = df_cf.groupby("Estilo_final")["Litros"].sum()
@@ -97,7 +97,10 @@ if not df.empty:
     # Agregar una columna "Alerta" que muestre un símbolo si los litros son menores a 200.
     df_litros["Bajo Inventario"] = df_litros["Litros"].apply(lambda x: "⚠️" if x < 200 else "")
 
-    st.subheader("Litros por Estilo con Alerta")
+    # Ordenar de mayor a menor según "Litros".
+    df_litros = df_litros.sort_values(by="Litros", ascending=False)
+
+    st.subheader("Litros por Estilo con Alerta (ordenado de mayor a menor)")
     st.write(df_litros)
     
     # Mostrar resultados en Streamlit.
