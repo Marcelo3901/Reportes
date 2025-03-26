@@ -1,6 +1,12 @@
 import pandas as pd
 import streamlit as st
 
+# Intentar importar unidecode; si no está instalado, definir una función que simplemente devuelva el mismo texto.
+try:
+    from unidecode import unidecode
+except ModuleNotFoundError:
+    def unidecode(text):
+        return text
 # Función auxiliar: devuelve el primer valor no vacío entre los argumentos.
 def primer_no_vacio(*args):
     for a in args:
