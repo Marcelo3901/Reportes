@@ -1,3 +1,6 @@
+import streamlit as st
+import pandas as pd
+
 # --- Visualizaciones adicionales ---
 st.markdown("---")
 st.subheader("Visualizaciones Adicionales")
