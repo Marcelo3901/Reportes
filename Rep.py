@@ -19,7 +19,6 @@ def obtener_datos_de_hoja(sheet_url, sheet_name):
     try:
         # Construir la URL para obtener el CSV (asegúrate de que la hoja esté publicada).
         url = f"{sheet_url}/gviz/tq?tqx=out:csv&sheet={sheet_name}"
-        st.write("URL utilizada para obtener los datos:", url)
         df = pd.read_csv(url)
         df.columns = df.columns.str.strip()  # Limpiar espacios en los nombres de las columnas.
         
@@ -46,7 +45,6 @@ sheet_name = "DatosM"  # Verifica que el nombre coincida exactamente con el de l
 
 # Obtener los datos.
 df = obtener_datos_de_hoja(sheet_url, sheet_name)
-st.write("Dimensiones del DataFrame:", df.shape)
 
 if not df.empty:
     # Convertir "Marca temporal" a datetime.
