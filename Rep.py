@@ -1,6 +1,13 @@
 import pandas as pd
 import streamlit as st
-from unidecode import unidecode
+
+# Intentar importar unidecode, sino definir una función que lo reemplace
+try:
+    from unidecode import unidecode
+except ModuleNotFoundError:
+    st.warning("El módulo 'unidecode' no se encontró. Se usará una función de 'unidecode' que no modifica el texto.")
+    def unidecode(text):
+        return text
 
 # Función auxiliar: devuelve el primer valor no vacío entre los argumentos
 def primer_no_vacio(*args):
@@ -63,7 +70,7 @@ if not df.empty:
     df["Estado_final"] = df.apply(lambda row: primer_no_vacio(row.get("Estado", ""), row.get("Estado.1", "")), axis=1)
     df["Estilo_final"] = df.apply(lambda row: primer_no_vacio(row.get("Estilo", ""), row.get("Estilo.1", "")), axis=1)
     
-    # Normalizar: quitar espacios, pasar a minúsculas y eliminar acentos
+    # Normalizar: quitar espacios, pasar a minúsculas y eliminar acentos (si unidecode está disponible)
     df["Estado_final"] = df["Estado_final"].str.strip().str.lower().apply(unidecode)
     df["Estilo_final"] = df["Estilo_final"].str.strip().apply(unidecode)
     
