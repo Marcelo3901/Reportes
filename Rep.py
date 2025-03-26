@@ -30,10 +30,10 @@ def obtener_datos_de_hoja(sheet_url, sheet_name):
         st.write(df.head(10))
         
         # Verificar que existan las columnas requeridas.
-        required = ["Código", "Marca temporal", "Estado", "Estado.1", "Estilo", "Estilo.1"]
-        missing = [col for col in required if col not in df.columns]
-        if missing:
-            st.error(f"Faltan columnas requeridas: {missing}")
+        requeridas = ["Código", "Marca temporal", "Estado", "Estado.1", "Estilo", "Estilo.1"]
+        faltantes = [col for col in requeridas if col not in df.columns]
+        if faltantes:
+            st.error(f"Faltan columnas requeridas: {faltantes}")
             return pd.DataFrame()
         
         # Eliminar filas donde "Código" sea nulo o vacío.
@@ -80,8 +80,8 @@ if not df.empty:
     st.write("Número de registros con Estado 'en cuarto frío':", df_cf.shape[0])
     
     # Función para determinar la capacidad (litros) según los dos primeros dígitos del código.
-    def obtener_capacidad(Código):
-        codigo_str = str(Código).strip()
+    def obtener_capacidad(codigo):
+        codigo_str = str(codigo).strip()
         if codigo_str.startswith("20"):
             return 20
         elif codigo_str.startswith("30"):
