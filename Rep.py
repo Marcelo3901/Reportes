@@ -86,33 +86,28 @@ if not df.empty:
     df_cf["Litros"] = df_cf["Código"].apply(obtener_capacidad)
 
    # Calcular totales.
-    total_barriles = df_cf.shape[0]
-    litros_totales = df_cf["Litros"].sum()
-    litros_por_estilo = df_cf.groupby("Estilo_final")["Litros"].sum()
+total_barriles = df_cf.shape[0]
+litros_totales = df_cf["Litros"].sum()
 
-    # Crear un DataFrame a partir de la serie de litros por estilo.
-    df_litros = litros_por_estilo.reset_index()
-    df_litros.columns = ["Estilo", "Litros"]
+# Agrupar por "Estilo_final" para obtener la suma de litros y el número de barriles.
+litros_por_estilo = df_cf.groupby("Estilo_final")["Litros"].sum()
+barriles_por_estilo = df_cf.groupby("Estilo_final").size()
 
-    # Agregar una columna "Alerta" que muestre un símbolo si los litros son menores a 200.
-    df_litros["Bajo Inventario"] = df_litros["Litros"].apply(lambda x: "⚠️" if x < 200 else "")
+# Crear un DataFrame con ambas series.
+df_litros = pd.DataFrame({
+    "Litros": litros_por_estilo,
+    "Barriles": barriles_por_estilo
+}).reset_index()
+df_litros.columns = ["Estilo", "Litros", "Barriles"]
 
-    # Ordenar de mayor a menor según "Litros".
-    df_litros = df_litros.sort_values(by="Litros", ascending=False)
+# Agregar una columna "Alerta" que muestre un símbolo si los litros son menores a 200.
+df_litros["Alerta"] = df_litros["Litros"].apply(lambda x: "⚠️" if x < 200 else "")
 
-    st.subheader("Litros por Estilo con Alerta")
-    st.write(df_litros)
-    
-    # Mostrar resultados en Streamlit.
-   
-    st.subheader("Resumen del Inventario")
-    st.write(f"**Barriles Totales:** {total_barriles}")
-    st.write(f"**Litros Totales:** {litros_totales} litros")
-    
-    
-    st.subheader("Detalle del Inventario")
-    st.write(df_cf[["Marca temporal", "Código", "Estilo_final", "Estado_final", "Litros"]])
+# Ordenar de mayor a menor según "Litros".
+df_litros = df_litros.sort_values(by="Litros", ascending=False)
 
+st.subheader("Litros por Estilo con Alerta y número de barriles (ordenado de mayor a menor)")
+st.write(df_litros)
      
 else:
     st.error("No se cargaron datos.")
