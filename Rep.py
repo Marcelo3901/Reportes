@@ -30,10 +30,10 @@ def obtener_datos_de_hoja(sheet_url, sheet_name):
         st.write(df.head(10))
         
         # Verificar que existan las columnas requeridas.
-        required = ["Código", "Marca temporal", "Estado", "Estado.1", "Estilo", "Estilo.1"]
-        missing = [col for col in required if col not in df.columns]
-        if missing:
-            st.error(f"Faltan columnas requeridas: {missing}")
+        requeridas = ["Código", "Marca temporal", "Estado", "Estado.1", "Estilo", "Estilo.1"]
+        faltantes = [col for col in requeridas if col not in df.columns]
+        if faltantes:
+            st.error(f"Faltan columnas requeridas: {faltantes}")
             return pd.DataFrame()
         
         # Eliminar filas donde "Código" sea nulo o vacío.
@@ -51,7 +51,6 @@ sheet_name = "DatosM"  # Verifica que el nombre coincida exactamente con el de l
 
 # Obtener los datos.
 df = obtener_datos_de_hoja(sheet_url, sheet_name)
-
 st.write("Dimensiones del DataFrame:", df.shape)
 
 if not df.empty:
@@ -80,8 +79,8 @@ if not df.empty:
     st.write("Número de registros con Estado 'en cuarto frío':", df_cf.shape[0])
     
     # Función para determinar la capacidad (litros) según los dos primeros dígitos del código.
-    def obtener_capacidad(Código):
-        codigo_str = str(Código).strip()
+    def obtener_capacidad(codigo):
+        codigo_str = str(codigo).strip()
         if codigo_str.startswith("20"):
             return 20
         elif codigo_str.startswith("30"):
@@ -110,132 +109,45 @@ if not df.empty:
     
     st.subheader("Detalle del Inventario")
     st.write(df_cf[["Marca temporal", "Código", "Estilo_final", "Estado_final", "Litros"]])
+    
+    # --- Visualizaciones temporales (semanales y mensuales) ---
+    st.markdown("---")
+    st.subheader("Visualizaciones Temporales")
+    
+    # Crear una copia para series temporales
+    df_time = df.copy()
+    # Asegurarse de que "Marca temporal" es datetime (ya lo es)
+    df_time['Fecha'] = df_time['Marca temporal'].dt.date  # Extraer solo la fecha
+    
+    # Crear columnas para semana y mes
+    df_time['Semana'] = df_time['Marca temporal'].dt.to_period('W').apply(lambda r: r.start_time)
+    df_time['Mes'] = df_time['Marca temporal'].dt.to_period('M').apply(lambda r: r.start_time)
+    
+    # Agrupar por semana y mes (usando la columna "Litros" si ésta es la métrica que interesa)
+    produccion_semanal = df_time.groupby('Semana')['Litros'].sum().reset_index()
+    produccion_mensual = df_time.groupby('Mes')['Litros'].sum().reset_index()
+    
+    st.subheader("Producción Semanal (Litros)")
+    st.line_chart(produccion_semanal.set_index('Semana'))
+    
+    st.subheader("Producción Mensual (Litros)")
+    st.line_chart(produccion_mensual.set_index('Mes'))
+    
+    # Gráficos interactivos con Plotly Express (si está instalado)
+    try:
+        import plotly.express as px
+        # Gráfico interactivo de producción semanal
+        fig_sem = px.line(produccion_semanal, x='Semana', y='Litros',
+                          title='Producción Semanal (Litros)',
+                          labels={'Semana': 'Semana', 'Litros': 'Litros'})
+        st.plotly_chart(fig_sem)
+        
+        # Gráfico interactivo de producción mensual
+        fig_mes = px.line(produccion_mensual, x='Mes', y='Litros',
+                          title='Producción Mensual (Litros)',
+                          labels={'Mes': 'Mes', 'Litros': 'Litros'})
+        st.plotly_chart(fig_mes)
+    except Exception as e:
+        st.warning(f"No se pudo crear los gráficos interactivos con Plotly: {e}")
 else:
     st.error("No se cargaron datos.")
-
-# --- Visualizaciones adicionales ---
-st.markdown("---")
-st.subheader("Visualizaciones Adicionales")
-
-# 1. Scatter Plot: Relación entre el código numérico y los litros.
-# Convertir 'Código' a numérico (si es posible). Los valores que no puedan convertirse se marcarán como NaN.
-try:
-    df_cf["Código_num"] = pd.to_numeric(df_cf["Código"], errors="coerce")
-    import plotly.express as px
-    fig_scatter = px.scatter(
-        df_cf,
-        x="Código_num",
-        y="Litros",
-        color="Estilo_final",
-        title="Scatter Plot: Código numérico vs Litros",
-        labels={"Código_num": "Código (numérico)", "Litros": "Litros"}
-    )
-    st.plotly_chart(fig_scatter)
-except Exception as e:
-    st.warning(f"No se pudo crear el scatter plot: {e}")
-
-# 2. Histograma: Distribución de los litros.
-try:
-    fig_hist = px.histogram(
-        df_cf,
-        x="Litros",
-        nbins=10,
-        title="Histograma de Litros"
-    )
-    st.plotly_chart(fig_hist)
-except Exception as e:
-    st.warning(f"No se pudo crear el histograma: {e}")
-
-# 3. Box Plot: Distribución de Litros por Estilo.
-try:
-    fig_box = px.box(
-        df_cf,
-        x="Estilo_final",
-        y="Litros",
-        title="Box Plot de Litros por Estilo"
-    )
-    st.plotly_chart(fig_box)
-except Exception as e:
-    st.warning(f"No se pudo crear el box plot: {e}")
-
-# 4. Heatmap: Matriz de correlación de las columnas numéricas.
-try:
-    # Seleccionar solo las columnas numéricas (por ejemplo, 'Litros' y 'Código_num' si está disponible)
-    numeric_df = df_cf.select_dtypes(include=["number"])
-    import seaborn as sns
-    import matplotlib.pyplot as plt
-    fig_heat, ax = plt.subplots(figsize=(4,3))
-    sns.heatmap(numeric_df.corr(), annot=True, cmap="coolwarm", ax=ax)
-    st.pyplot(fig_heat)
-except Exception as e:
-    st.warning(f"No se pudo crear el heatmap: {e}")
-
-# 5. Gráfico de Área: Evolución diaria del inventario (si la columna 'Marca temporal' está disponible).
-try:
-    df_time = df.copy()
-    df_time['Fecha'] = df_time['Marca temporal'].dt.date  # Extraer solo la fecha
-    inventario_diario = df_time.groupby('Fecha').size()
-    st.markdown("### Gráfico de Área: Inventario Diario")
-    st.area_chart(inventario_diario)
-except Exception as e:
-    st.warning(f"No se pudo crear el gráfico de área: {e}")
-
-# 6. Bubble Chart: Gráfico de dispersión con burbujas, usando 'Código_num' y 'Litros'.
-try:
-    fig_bubble = px.scatter(
-        df_cf,
-        x="Código_num",
-        y="Litros",
-        size="Litros",
-        color="Estilo_final",
-        title="Bubble Chart: Código numérico vs Litros",
-        labels={"Código_num": "Código (numérico)", "Litros": "Litros"}
-    )
-    st.plotly_chart(fig_bubble)
-except Exception as e:
-    st.warning(f"No se pudo crear el bubble chart: {e}")
-
-# Suponiendo que 'df' es el DataFrame original con todos los datos procesados
-# y que ya se ha convertido 'Marca temporal' a datetime y se ha calculado "Litros".
-# También asumimos que "df" contiene la información de inventario o producción.
-
-# Crear una copia para trabajar con series temporales
-df_time = df.copy()
-
-# Extraer la fecha (sin tiempo) para facilitar el agrupamiento
-df_time['Fecha'] = df_time['Marca temporal'].dt.date
-
-# Agregar columnas para semana y mes (usando períodos)
-df_time['Semana'] = df_time['Marca temporal'].dt.to_period('W').apply(lambda r: r.start_time)
-df_time['Mes'] = df_time['Marca temporal'].dt.to_period('M').apply(lambda r: r.start_time)
-
-# Agrupar por semana: sumar los litros producidos/inventariados en esa semana.
-produccion_semanal = df_time.groupby('Semana')['Litros'].sum().reset_index()
-# Agrupar por mes.
-produccion_mensual = df_time.groupby('Mes')['Litros'].sum().reset_index()
-
-# Mostrar gráficos de línea usando la función nativa de Streamlit:
-st.subheader("Producción Semanal (Litros)")
-st.line_chart(produccion_semanal.set_index('Semana'))
-
-st.subheader("Producción Mensual (Litros)")
-st.line_chart(produccion_mensual.set_index('Mes'))
-
-# Opcional: usar Plotly Express para gráficos más interactivos.
-try:
-    import plotly.express as px
-
-    # Gráfico interactivo de producción semanal.
-    fig_sem = px.line(produccion_semanal, x='Semana', y='Litros',
-                      title='Producción Semanal (Litros)',
-                      labels={'Semana': 'Semana', 'Litros': 'Litros'})
-    st.plotly_chart(fig_sem)
-    
-    # Gráfico interactivo de producción mensual.
-    fig_mes = px.line(produccion_mensual, x='Mes', y='Litros',
-                      title='Producción Mensual (Litros)',
-                      labels={'Mes': 'Mes', 'Litros': 'Litros'})
-    st.plotly_chart(fig_mes)
-except Exception as e:
-    st.warning(f"No se pudo crear los gráficos interactivos con Plotly: {e}")
-    
