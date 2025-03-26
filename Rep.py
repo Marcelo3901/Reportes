@@ -84,4 +84,31 @@ if not df.empty:
         codigo_str = str(codigo).strip()
         if codigo_str.startswith("20"):
             return 20
-        elif codigo_str.startswith("_
+        elif codigo_str.startswith("30"):
+            return 30
+        elif codigo_str.startswith("58"):
+            return 58
+        else:
+            return 0  # Si no es un código reconocido.
+    
+    # Calcular la capacidad de cada barril y almacenarla en la columna "Litros".
+    df_cf["Litros"] = df_cf["Código"].apply(obtener_capacidad)
+    
+    # Calcular totales.
+    total_barriles = df_cf.shape[0]
+    litros_totales = df_cf["Litros"].sum()
+    litros_por_estilo = df_cf.groupby("Estilo_final")["Litros"].sum()
+    
+    # Mostrar resultados en Streamlit.
+    st.title("Reporte de Inventario de Barriles en Cuarto Frío")
+    st.subheader("Resumen del Inventario")
+    st.write(f"**Barriles Totales:** {total_barriles}")
+    st.write(f"**Litros Totales:** {litros_totales} litros")
+    
+    st.subheader("Litros por Estilo")
+    st.write(litros_por_estilo)
+    
+    st.subheader("Detalle del Inventario")
+    st.write(df_cf[["Marca temporal", "Código", "Estilo_final", "Estado_final", "Litros"]])
+else:
+    st.error("No se cargaron datos.")
