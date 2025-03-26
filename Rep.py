@@ -30,10 +30,10 @@ def obtener_datos_de_hoja(sheet_url, sheet_name):
         st.write(df.head(10))
         
         # Verificar que existan las columnas requeridas.
-        required = ["Código", "Marca temporal", "Estado", "Estado.1", "Estilo", "Estilo.1"]
-        missing = [col for col in required if col not in df.columns]
-        if missing:
-            st.error(f"Faltan columnas requeridas: {missing}")
+        requeridas = ["Código", "Marca temporal", "Estado", "Estado.1", "Estilo", "Estilo.1"]
+        faltantes = [col for col in requeridas if col not in df.columns]
+        if faltantes:
+            st.error(f"Faltan columnas requeridas: {faltantes}")
             return pd.DataFrame()
         
         # Eliminar filas donde "Código" sea nulo o vacío.
@@ -42,4 +42,19 @@ def obtener_datos_de_hoja(sheet_url, sheet_name):
         
         return df
     except Exception as e:
-        st.error(f"Error al obtener datos
+        st.error(f"Error al obtener datos: {e}")
+        return pd.DataFrame()
+
+# Parámetros: URL base de la hoja y nombre de la hoja (deben coincidir exactamente).
+sheet_url = "https://docs.google.com/spreadsheets/d/1FjQ8XBDwDdrlJZsNkQ6YyaygkHLhpKmfLBv6wd3uluY"
+sheet_name = "DatosM"  # Verifica que el nombre coincida exactamente con el de la pestaña.
+
+# Obtener los datos.
+df = obtener_datos_de_hoja(sheet_url, sheet_name)
+
+st.write("Dimensiones del DataFrame:", df.shape)
+
+if not df.empty:
+    # Convertir "Marca temporal" a datetime.
+    try:
+        df['Marca temporal'] = pd.to_datetime(df['Marca temporal'], format='%d/%m/%Y %H:%_
