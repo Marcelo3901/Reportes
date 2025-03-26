@@ -4,10 +4,3 @@ plotly
 urllib3
 gspread
 requests
-streamlit
-pandas
-plotly
-altair
-seaborn
-matplotlib
-unidecode
