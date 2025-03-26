@@ -85,13 +85,14 @@ if not df.empty:
     # Calcular la capacidad de cada barril y almacenarla en la columna "Litros".
     df_cf["Litros"] = df_cf["Código"].apply(obtener_capacidad)
 
-     st.title("Reporte de Inventario de Barriles en Cuarto Frío")
+    
     
     # Calcular totales.
     total_barriles = df_cf.shape[0]
     litros_totales = df_cf["Litros"].sum()
     litros_por_estilo = df_cf.groupby("Estilo_final")["Litros"].sum()
 
+    st.title("Reporte de Inventario de Barriles en Cuarto Frío")
     st.subheader("Litros por Estilo")
     st.write(litros_por_estilo)
 
