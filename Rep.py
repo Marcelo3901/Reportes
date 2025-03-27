@@ -124,7 +124,7 @@ else:
     st.error("No se cargaron datos.")
 
 # Conectar con Google Sheets sin autenticación usando pandas
-sheet_url = "https://docs.google.com/spreadsheets/d/1FjQ8XBDwDdrlJZsNkQ6YyaygkHLhpKmfLBv6wd3uluY/export?format=csv&gid=0"
+sheet_url = "https://docs.google.com/spreadsheets/d/1FjQ8XBDwDdrlJZsNkQ6YyaygkHLhpKmfLBv6wd3uluY/edit?usp=sharing"
 df_inventario = pd.read_csv(sheet_url)
 
 # Verificar las columnas disponibles
@@ -136,7 +136,7 @@ else:
     print("Error: La columna 'Cantidad' no existe en df_inventario")
 
 # Obtener datos de la hoja "VLatas"
-sheet_url_vlatas = "https://docs.google.com/spreadsheets/d/1FjQ8XBDwDdrlJZsNkQ6YyaygkHLhpKmfLBv6wd3uluY/export?format=csv&gid=123456789"  # Reemplaza con el GID correcto
+sheet_url_vlatas = "https://docs.google.com/spreadsheets/d/1FjQ8XBDwDdrlJZsNkQ6YyaygkHLhpKmfLBv6wd3uluY/edit?gid=1581220149#gid=1581220149"  # Reemplaza con el GID correcto
 df_despachos = pd.read_csv(sheet_url_vlatas)
 
 # Verificar columnas de df_despachos
