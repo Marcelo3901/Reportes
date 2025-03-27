@@ -1,5 +1,6 @@
 import pandas as pd
 import streamlit as st
+import altair as alt
 import matplotlib.pyplot as plt
 import seaborn as sns
 from gspread_dataframe import get_as_dataframe
@@ -116,9 +117,35 @@ if not df.empty:
     st.write(f"**Barriles Totales:** {total_barriles}")
     st.write(f"**Litros Totales:** {litros_totales} litros")
 
+  colores = {
+    "Golden": "#f6ff33",
+    "IPA": "#20cb80",
+    "Barley Wine": "#6113c5",
+    "Session IPA": "#65f859",
+    "Trigo": "#ecc00f",
+    "Vienna Lager": "#e87118",
+    "Stout": "#3f3e3d",
+    "Otros": "#bbb6b2",
+    "Amber": "#f52615",
+    "Maracuya": "#e7e000",
+    "Brown Ale Cafe": "#135b08"
+}
+
+# Verificar si df_litros tiene datos antes de graficar
+if not df_litros.empty:
     st.markdown("---")
     st.subheader("Barriles por Estilo")
-    st.bar_chart(df_litros.set_index("Estilo")["Barriles"])
+
+    # Crear gráfico con Altair
+    chart = alt.Chart(df_litros).mark_bar().encode(
+        x=alt.X("Estilo", sort="-y"),
+        y="Barriles",
+        color=alt.Color("Estilo", scale=alt.Scale(domain=list(colores.keys()), range=list(colores.values()))),
+        tooltip=["Estilo", "Barriles"]
+    ).properties(width=600, height=400)
+
+    # Mostrar en Streamlit
+    st.altair_chart(chart, use_container_width=True)
      
 else:
     st.error("No se cargaron datos.")
