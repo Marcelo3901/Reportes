@@ -122,68 +122,92 @@ if not df.empty:
      
 else:
     st.error("No se cargaron datos.")
-
 # Conectar con Google Sheets sin autenticación usando pandas
-    sheet_url = "https://docs.google.com/spreadsheets/d/1FjQ8XBDwDdrlJZsNkQ6YyaygkHLhpKmfLBv6wd3uluY/edit?usp=sharing"
-    df_inventario = pd.read_csv(sheet_url)
+sheet_id = "1FjQ8XBDwDdrlJZsNkQ6YyaygkHLhpKmfLBv6wd3uluY"
+sheet_name_inventario = "InventarioLatas"
+sheet_name_vlatas = "VLatas"
+
+sheet_url_inventario = f"https://docs.google.com/spreadsheets/d/{sheet_id}/gviz/tq?tqx=out:csv&sheet={sheet_name_inventario}"
+sheet_url_vlatas = f"https://docs.google.com/spreadsheets/d/{sheet_id}/gviz/tq?tqx=out:csv&sheet={sheet_name_vlatas}"
+
+df_inventario = pd.read_csv(sheet_url_inventario)
+df_despachos = pd.read_csv(sheet_url_vlatas)
 
 # Verificar las columnas disponibles
-    print("Columnas disponibles en df_inventario:", df_inventario.columns)
+print("Columnas disponibles en df_inventario:", df_inventario.columns)
+print("Columnas disponibles en df_despachos:", df_despachos.columns)
 
-    if "Cantidad" in df_inventario.columns:
+if "Cantidad" in df_inventario.columns:
     df_inventario["Cantidad"] = pd.to_numeric(df_inventario["Cantidad"], errors='coerce')
-    else:
-        print("Error: La columna 'Cantidad' no existe en df_inventario")
+else:
+    print("Error: La columna 'Cantidad' no existe en df_inventario")
 
-# Obtener datos de la hoja "VLatas"
-    sheet_url_vlatas = "https://docs.google.com/spreadsheets/d/1FjQ8XBDwDdrlJZsNkQ6YyaygkHLhpKmfLBv6wd3uluY/edit?gid=1581220149#gid=1581220149"  # Reemplaza con el GID correcto
-    df_despachos = pd.read_csv(sheet_url_vlatas)
-
-# Verificar columnas de df_despachos
-    print("Columnas disponibles en df_despachos:", df_despachos.columns)
-
-    if "Cantidad" in df_despachos.columns:
-        df_despachos["Cantidad"] = pd.to_numeric(df_despachos["Cantidad"], errors='coerce')
-    else:
-        print("Error: La columna 'Cantidad' no existe en df_despachos")
+if "Cantidad" in df_despachos.columns:
+    df_despachos["Cantidad"] = pd.to_numeric(df_despachos["Cantidad"], errors='coerce')
+else:
+    print("Error: La columna 'Cantidad' no existe en df_despachos")
 
 # Agrupar por Estilo y Lote
-    if "Estilo" in df_inventario.columns and "Lote" in df_inventario.columns:
-        inventario_agrupado = df_inventario.groupby(["Estilo", "Lote"])["Cantidad"].sum().reset_index()
-    else:
-        print("Error: Las columnas 'Estilo' o 'Lote' no existen en df_inventario")
-        inventario_agrupado = pd.DataFrame()
+if "Estilo" in df_inventario.columns and "Lote" in df_inventario.columns:
+    inventario_agrupado = df_inventario.groupby(["Estilo", "Lote"]) ["Cantidad"].sum().reset_index()
+else:
+    print("Error: Las columnas 'Estilo' o 'Lote' no existen en df_inventario")
+    inventario_agrupado = pd.DataFrame()
 
-    if "Estilo" in df_despachos.columns and "Lote" in df_despachos.columns:
-        despachos_agrupado = df_despachos.groupby(["Estilo", "Lote"])["Cantidad"].sum().reset_index()
-    else:
-        print("Error: Las columnas 'Estilo' o 'Lote' no existen en df_despachos")
-        despachos_agrupado = pd.DataFrame()
+if "Estilo" in df_despachos.columns and "Lote" in df_despachos.columns:
+    despachos_agrupado = df_despachos.groupby(["Estilo", "Lote"]) ["Cantidad"].sum().reset_index()
+else:
+    print("Error: Las columnas 'Estilo' o 'Lote' no existen en df_despachos")
+    despachos_agrupado = pd.DataFrame()
 
 # Combinar datos y calcular inventario actual
-    if not inventario_agrupado.empty and not despachos_agrupado.empty:
-        inventario_total = pd.merge(inventario_agrupado, despachos_agrupado, on=["Estilo", "Lote"], how="left", suffixes=("_ingreso", "_salida"))
-        inventario_total["Cantidad_salida"].fillna(0, inplace=True)
-        inventario_total["Inventario"] = inventario_total["Cantidad_ingreso"] - inventario_total["Cantidad_salida"]
-        inventario_total = inventario_total[inventario_total["Inventario"] > 0]
-    else:
-        inventario_total = pd.DataFrame()
-        print("Error: No se pudo calcular el inventario total")
+if not inventario_agrupado.empty and not despachos_agrupado.empty:
+    inventario_total = pd.merge(inventario_agrupado, despachos_agrupado, on=["Estilo", "Lote"], how="left", suffixes=("_ingreso", "_salida"))
+    inventario_total["Cantidad_salida"].fillna(0, inplace=True)
+    inventario_total["Inventario"] = inventario_total["Cantidad_ingreso"] - inventario_total["Cantidad_salida"]
+    inventario_total = inventario_total[inventario_total["Inventario"] > 0]
+else:
+    inventario_total = pd.DataFrame()
+    print("Error: No se pudo calcular el inventario total")
 
-    # Asignar colores a cada estilo
-    if not inventario_total.empty:
-        estilos_unicos = inventario_total["Estilo"].unique()
-        colores = sns.color_palette("husl", len(estilos_unicos))
-        color_dict = dict(zip(estilos_unicos, colores))
+# Asignar colores a cada estilo
+if not inventario_total.empty:
+    estilos_unicos = inventario_total["Estilo"].unique()
+    colores = sns.color_palette("husl", len(estilos_unicos))
+    color_dict = dict(zip(estilos_unicos, colores))
 
     # Crear gráfico de barras
-        plt.figure(figsize=(10, 6))
-        sns.barplot(x="Inventario", y="Estilo", data=inventario_total, hue="Estilo", palette=color_dict, dodge=False)
-        plt.xlabel("Cantidad Disponible")
-        plt.ylabel("Estilo de Cerveza")
-        plt.title("Inventario de Latas en Cuarto Frío")
-        plt.legend(title="Estilo")
-        plt.show()
-    else:
-        print("No hay datos disponibles para generar el gráfico.")
+    plt.figure(figsize=(10, 6))
+    sns.barplot(x="Inventario", y="Estilo", data=inventario_total, hue="Estilo", palette=color_dict, dodge=False)
+    plt.xlabel("Cantidad Disponible")
+    plt.ylabel("Estilo de Cerveza")
+    plt.title("Inventario de Latas en Cuarto Frío")
+    plt.legend(title="Estilo")
+    plt.show()
+else:
+    print("No hay datos disponibles para generar el gráfico.")
 
+# Código para manejar el inventario de latas basado en ambas hojas
+if "Capacidad" in df_inventario.columns and "Capacidad" in df_despachos.columns:
+    inventario_agrupado_latas = df_inventario.groupby(["Estilo", "Lote", "Capacidad"]) ["Cantidad"].sum().reset_index()
+    despachos_agrupado_latas = df_despachos.groupby(["Estilo", "Lote", "Capacidad"]) ["Cantidad"].sum().reset_index()
+    
+    inventario_total_latas = pd.merge(inventario_agrupado_latas, despachos_agrupado_latas, on=["Estilo", "Lote", "Capacidad"], how="left", suffixes=("_ingreso", "_salida"))
+    inventario_total_latas["Cantidad_salida"].fillna(0, inplace=True)
+    inventario_total_latas["Inventario"] = inventario_total_latas["Cantidad_ingreso"] - inventario_total_latas["Cantidad_salida"]
+    inventario_total_latas = inventario_total_latas[inventario_total_latas["Inventario"] > 0]
+else:
+    print("Error: No se encontraron las columnas necesarias para calcular el inventario de latas")
+    inventario_total_latas = pd.DataFrame()
+
+# Gráfico de inventario de latas por capacidad
+if not inventario_total_latas.empty:
+    plt.figure(figsize=(12, 7))
+    sns.barplot(x="Inventario", y="Estilo", hue="Capacidad", data=inventario_total_latas, dodge=True)
+    plt.xlabel("Cantidad Disponible")
+    plt.ylabel("Estilo de Cerveza")
+    plt.title("Inventario de Latas por Capacidad")
+    plt.legend(title="Capacidad (ml)")
+    plt.show()
+else:
+    print("No hay datos disponibles para generar el gráfico de latas.")
