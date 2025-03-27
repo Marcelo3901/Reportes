@@ -123,19 +123,15 @@ if not df.empty:
 else:
     st.error("No se cargaron datos.")
 
-# Conectar con Google Sheets sin autenticación (hoja pública)
-sheet_url = "https://docs.google.com/spreadsheets/d/1FjQ8XBDwDdrlJZsNkQ6YyaygkHLhpKmfLBv6wd3uluY/edit#gid=0"
-client = gspread.public()
-sheet = client.open_by_url(sheet_url)
+# Conectar con Google Sheets sin autenticación usando pandas
+sheet_url = "https://docs.google.com/spreadsheets/d/1FjQ8XBDwDdrlJZsNkQ6YyaygkHLhpKmfLBv6wd3uluY"
+df_inventario = pd.read_csv(sheet_url)
 
-# Obtener datos de la hoja "InventarioLatas"
-inventario_latas = sheet.worksheet("InventarioLatas")
-df_inventario = get_as_dataframe(inventario_latas, evaluate_formulas=True, dtype=str).dropna()
 df_inventario["Cantidad"] = pd.to_numeric(df_inventario["Cantidad"], errors='coerce')
 
 # Obtener datos de la hoja "VLatas"
-despachos_latas = sheet.worksheet("VLatas")
-df_despachos = get_as_dataframe(despachos_latas, evaluate_formulas=True, dtype=str).dropna()
+sheet_url_vlatas = "https://docs.google.com/spreadsheets/d/1FjQ8XBDwDdrlJZsNkQ6YyaygkHLhpKmfLBv6wd3uluY/edit?gid=1581220149#gid=1581220149"  # Reemplaza con el GID correcto
+df_despachos = pd.read_csv(sheet_url_vlatas)
 df_despachos["Cantidad"] = pd.to_numeric(df_despachos["Cantidad"], errors='coerce')
 
 # Agrupar por Estilo y Lote
