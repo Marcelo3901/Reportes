@@ -1,5 +1,8 @@
 import pandas as pd
 import streamlit as st
+import matplotlib.pyplot as plt
+import seaborn as sns
+from gspread_dataframe import get_as_dataframe
 
 # Intentar importar unidecode; si no está instalado, definir una función que simplemente devuelva el mismo texto.
 try:
@@ -119,3 +122,46 @@ if not df.empty:
      
 else:
     st.error("No se cargaron datos.")
+
+#Conectar con Google Sheets sin autenticación (hoja pública)
+sheet_url = "https://docs.google.com/spreadsheets/d/1FjQ8XBDwDdrlJZsNkQ6YyaygkHLhpKmfLBv6wd3uluY/edit#gid=0"
+client = gspread.Client(None)
+sheet = client.open_by_url(sheet_url)
+
+# Obtener datos de la hoja "InventarioLatas"
+inventario_latas = sheet.worksheet("InventarioLatas")
+df_inventario = get_as_dataframe(inventario_latas, evaluate_formulas=True, dtype=str).dropna()
+df_inventario["Cantidad"] = pd.to_numeric(df_inventario["Cantidad"], errors='coerce')
+
+# Obtener datos de la hoja "VLatas"
+despachos_latas = sheet.worksheet("VLatas")
+df_despachos = get_as_dataframe(despachos_latas, evaluate_formulas=True, dtype=str).dropna()
+df_despachos["Cantidad"] = pd.to_numeric(df_despachos["Cantidad"], errors='coerce')
+
+# Agrupar por Estilo y Lote
+inventario_agrupado = df_inventario.groupby(["Estilo", "Lote"])["Cantidad"].sum().reset_index()
+despachos_agrupado = df_despachos.groupby(["Estilo", "Lote"])["Cantidad"].sum().reset_index()
+
+# Combinar datos y calcular inventario actual
+inventario_total = pd.merge(inventario_agrupado, despachos_agrupado, on=["Estilo", "Lote"], how="left", suffixes=("_ingreso", "_salida"))
+inventario_total["Cantidad_salida"].fillna(0, inplace=True)
+inventario_total["Inventario"] = inventario_total["Cantidad_ingreso"] - inventario_total["Cantidad_salida"]
+
+# Filtrar solo estilos con inventario positivo
+inventario_total = inventario_total[inventario_total["Inventario"] > 0]
+
+# Asignar colores a cada estilo
+estilos_unicos = inventario_total["Estilo"].unique()
+colores = sns.color_palette("husl", len(estilos_unicos))
+color_dict = dict(zip(estilos_unicos, colores))
+
+# Crear gráfico de barras
+plt.figure(figsize=(10, 6))
+sns.barplot(x="Inventario", y="Estilo", data=inventario_total, hue="Estilo", palette=color_dict, dodge=False)
+plt.xlabel("Cantidad Disponible")
+plt.ylabel("Estilo de Cerveza")
+plt.title("Inventario de Latas en Cuarto Frío")
+plt.legend(title="Estilo")
+plt.show()
+
+
