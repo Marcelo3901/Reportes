@@ -123,9 +123,9 @@ if not df.empty:
 else:
     st.error("No se cargaron datos.")
 
-#Conectar con Google Sheets sin autenticación (hoja pública)
-sheet_url = "https://docs.google.com/spreadsheets/d/1FjQ8XBDwDdrlJZsNkQ6YyaygkHLhpKmfLBv6wd3uluY"
-client = gspread.Client(None)
+# Conectar con Google Sheets sin autenticación (hoja pública)
+sheet_url = "https://docs.google.com/spreadsheets/d/1FjQ8XBDwDdrlJZsNkQ6YyaygkHLhpKmfLBv6wd3uluY/edit#gid=0"
+client = gspread.public()
 sheet = client.open_by_url(sheet_url)
 
 # Obtener datos de la hoja "InventarioLatas"
@@ -163,5 +163,3 @@ plt.ylabel("Estilo de Cerveza")
 plt.title("Inventario de Latas en Cuarto Frío")
 plt.legend(title="Estilo")
 plt.show()
-
-
