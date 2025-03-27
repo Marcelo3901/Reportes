@@ -117,7 +117,7 @@ if not df.empty:
     st.write(f"**Barriles Totales:** {total_barriles}")
     st.write(f"**Litros Totales:** {litros_totales} litros")
 
-  colores = {
+colores = {
     "Golden": "#f6ff33",
     "IPA": "#20cb80",
     "Barley Wine": "#6113c5",
