@@ -124,14 +124,12 @@ else:
     st.error("No se cargaron datos.")
 
 # Conectar con Google Sheets sin autenticación
-sheet_url_inventario = "https://docs.google.com/spreadsheets/d/1FjQ8XBDwDdrlJZsNkQ6YyaygkHLhpKmfLBv6wd3uluY/export?format=csv&gid=0"
-sheet_url_vlatas = "https://docs.google.com/spreadsheets/d/1FjQ8XBDwDdrlJZsNkQ6YyaygkHLhpKmfLBv6wd3uluY/export?format=csv&gid=123456789"  # GID correcto
-sheet_url_datosm = "https://docs.google.com/spreadsheets/d/1FjQ8XBDwDdrlJZsNkQ6YyaygkHLhpKmfLBv6wd3uluY/export?format=csv&gid=987654321"  # GID correcto
+sheet_url_inventario = "https://docs.google.com/spreadsheets/d/1FjQ8XBDwDdrlJZsNkQ6YyaygkHLhpKmfLBv6wd3uluY/edit?gid=1870686258#gid=1870686258"
+sheet_url_vlatas = "https://docs.google.com/spreadsheets/d/1FjQ8XBDwDdrlJZsNkQ6YyaygkHLhpKmfLBv6wd3uluY/edit?gid=1581220149#gid=1581220149"  # GID correcto
 
 # Cargar datos
 df_inventario = pd.read_csv(sheet_url_inventario)
 df_despachos = pd.read_csv(sheet_url_vlatas)
-df_datosm = pd.read_csv(sheet_url_datosm)
 
 # Convertir la cantidad a numérico
 df_inventario["Cantidad"] = pd.to_numeric(df_inventario["Cantidad"], errors='coerce')
