@@ -123,15 +123,18 @@ if not df.empty:
 else:
     st.error("No se cargaron datos.")
 
-# Conectar con Google Sheets sin autenticación usando pandas
-sheet_url = "https://docs.google.com/spreadsheets/d/1FjQ8XBDwDdrlJZsNkQ6YyaygkHLhpKmfLBv6wd3uluY"
-df_inventario = pd.read_csv(sheet_url)
+# Conectar con Google Sheets sin autenticación
+sheet_url_inventario = "https://docs.google.com/spreadsheets/d/1FjQ8XBDwDdrlJZsNkQ6YyaygkHLhpKmfLBv6wd3uluY/export?format=csv&gid=0"
+sheet_url_vlatas = "https://docs.google.com/spreadsheets/d/1FjQ8XBDwDdrlJZsNkQ6YyaygkHLhpKmfLBv6wd3uluY/export?format=csv&gid=123456789"  # GID correcto
+sheet_url_datosm = "https://docs.google.com/spreadsheets/d/1FjQ8XBDwDdrlJZsNkQ6YyaygkHLhpKmfLBv6wd3uluY/export?format=csv&gid=987654321"  # GID correcto
 
-df_inventario["Cantidad"] = pd.to_numeric(df_inventario["Cantidad"], errors='coerce')
-
-# Obtener datos de la hoja "VLatas"
-sheet_url_vlatas = "https://docs.google.com/spreadsheets/d/1FjQ8XBDwDdrlJZsNkQ6YyaygkHLhpKmfLBv6wd3uluY/edit?gid=1581220149#gid=1581220149"  # Reemplaza con el GID correcto
+# Cargar datos
+df_inventario = pd.read_csv(sheet_url_inventario)
 df_despachos = pd.read_csv(sheet_url_vlatas)
+df_datosm = pd.read_csv(sheet_url_datosm)
+
+# Convertir la cantidad a numérico
+df_inventario["Cantidad"] = pd.to_numeric(df_inventario["Cantidad"], errors='coerce')
 df_despachos["Cantidad"] = pd.to_numeric(df_despachos["Cantidad"], errors='coerce')
 
 # Agrupar por Estilo y Lote
@@ -159,3 +162,4 @@ plt.ylabel("Estilo de Cerveza")
 plt.title("Inventario de Latas en Cuarto Frío")
 plt.legend(title="Estilo")
 plt.show()
+
