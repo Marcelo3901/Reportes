@@ -4,3 +4,6 @@ plotly
 urllib3
 gspread
 requests
+matplotlib
+seaborn
+gspread-dataframe
