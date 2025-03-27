@@ -122,13 +122,14 @@ if not df.empty:
      
 else:
     st.error("No se cargaron datos.")
+
 # Conectar con Google Sheets sin autenticación usando pandas
 sheet_id = "1FjQ8XBDwDdrlJZsNkQ6YyaygkHLhpKmfLBv6wd3uluY"
-sheet_name_inventario = "InventarioLatas"
-sheet_name_vlatas = "VLatas"
+gid_inventario = "1870686258"
+gid_vlatas = "1581220149"
 
-sheet_url_inventario = f"https://docs.google.com/spreadsheets/d/{sheet_id}/gviz/tq?tqx=out:csv&sheet={sheet_name_inventario}"
-sheet_url_vlatas = f"https://docs.google.com/spreadsheets/d/{sheet_id}/gviz/tq?tqx=out:csv&sheet={sheet_name_vlatas}"
+sheet_url_inventario = f"https://docs.google.com/spreadsheets/d/1FjQ8XBDwDdrlJZsNkQ6YyaygkHLhpKmfLBv6wd3uluY/export?format=csv&gid=1870686258"
+sheet_url_vlatas = f"https://docs.google.com/spreadsheets/d/1FjQ8XBDwDdrlJZsNkQ6YyaygkHLhpKmfLBv6wd3uluY/export?format=csv&gid=1581220149"
 
 df_inventario = pd.read_csv(sheet_url_inventario)
 df_despachos = pd.read_csv(sheet_url_vlatas)
