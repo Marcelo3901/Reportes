@@ -243,60 +243,71 @@ else:
 
 
 
-# Función para obtener datos desde Google Sheets en formato CSV
-def obtener_datos_de_hoja(sheet_url, sheet_name):
+###########
+
+
+import pandas as pd
+import streamlit as st
+
+# Función para obtener los datos desde la hoja pública de Google Sheets en formato CSV.
+def obtener_datos_de_hoja(sheet_url):
     try:
-        url = f"{sheet_url}/gviz/tq?tqx=out:csv&sheet={sheet_name}"
+        # Construir la URL para obtener el CSV (asegúrate de que la hoja esté publicada).
+        url = f"{sheet_url}/gviz/tq?tqx=out:csv&sheet=DatosM"
         df = pd.read_csv(url)
-        df.columns = df.columns.str.strip()
+        df.columns = df.columns.str.strip()  # Limpiar espacios en los nombres de las columnas.
         
-        # Verificar columnas requeridas
-        requeridas = ["Código", "Marca temporal", "Cliente", "Estilo", "Estado"]
-        faltantes = [col for col in requeridas if col not in df.columns]
+        # Verificar que existan las columnas requeridas.
+        columnas_necesarias = ["Código", "Estado", "Cliente", "Estilo"]
+        faltantes = [col for col in columnas_necesarias if col not in df.columns]
         if faltantes:
             st.error(f"Faltan columnas requeridas: {faltantes}")
-            return pd.DataFrame()
+            return pd.DataFrame()  # Retornar un DataFrame vacío si faltan columnas
         
-        df = df[df["Código"].notna() & df["Código"].astype(str).str.strip() != ""]
         return df
     except Exception as e:
         st.error(f"Error al obtener datos: {e}")
         return pd.DataFrame()
 
-# Parámetros de la hoja de cálculo
-sheet_url = "https://docs.google.com/spreadsheets/d/1FjQ8XBDwDdrlJZsNkQ6YyaygkHLhpKmfLBv6wd3uluY"
-sheet_name = "DatosM"
+# Función para obtener la capacidad de cada barril en litros
+def obtener_capacidad(codigo):
+    if isinstance(codigo, str):
+        if codigo.startswith("20"):
+            return 20
+        elif codigo.startswith("30"):
+            return 30
+        elif codigo.startswith("58"):
+            return 58
+    return 0  # Retorna 0 si no tiene un código válido
 
-df = obtener_datos_de_hoja(sheet_url, sheet_name)
+# URL de la hoja "DatosM" (asegúrate de colocar la URL correcta de la hoja pública de Google Sheets)
+sheet_url_datosm = "https://docs.google.com/spreadsheets/d/1FjQ8XBDwDdrlJZsNkQ6YyaygkHLhpKmfLBv6wd3uluY"
 
+# Obtener los datos de la hoja de Google Sheets
+df = obtener_datos_de_hoja(sheet_url_datosm)
+
+# Verificar si el DataFrame no está vacío
 if not df.empty:
-    df['Marca temporal'] = pd.to_datetime(df['Marca temporal'], errors='coerce')
-    df = df.sort_values('Marca temporal', ascending=False)
-    df = df.drop_duplicates(subset='Código', keep='first')
+    # Filtrar solo los registros con el estado "despachado"
+    df_despacho = df[df["Estado"].str.lower().str.strip() == "despachado"].copy()
     
-    # Filtrar solo los registros que han sido despachados
-    df_despacho = df[df["Estado"].str.lower().str.strip() == "despachado"]
-    
-    # Función para obtener capacidad de barril
-    def obtener_capacidad(codigo):
-        codigo_str = str(codigo).strip()
-        if codigo_str.startswith("20"): return 20
-        elif codigo_str.startswith("30"): return 30
-        elif codigo_str.startswith("58"): return 58
-        else: return 0
-    
-    df_despacho["Litros"] = df_despacho["Código"].apply(obtener_capacidad)
-    
-    # Agrupar datos
-    df_ventas = df_despacho.groupby(["Cliente", "Estilo"]).agg({"Litros": "sum", "Código": "count"}).reset_index()
-    df_ventas.columns = ["Cliente", "Estilo", "Litros", "Barriles"]
-    
-    # Mostrar tabla de ventas
-    st.subheader("Ventas/Despachos por Cliente y Estilo")
-    st.write(df_ventas)  
+    # Verificar si hay registros de despachos
+    if df_despacho.empty:
+        st.warning("No hay registros de despachos.")
+    else:
+        # Aplicar la función para obtener la capacidad del barril (Litros)
+        df_despacho["Litros"] = df_despacho["Código"].apply(obtener_capacidad)
+        
+        # Agrupar los datos por Cliente y Estilo, y calcular la suma de Litros y el conteo de Barriles
+        df_resumen = df_despacho.groupby(["Cliente", "Estilo"]).agg(
+            {"Litros": "sum", "Código": "count"}  # Sumar Litros y contar Barriles
+        ).reset_index()
+        
+        # Renombrar las columnas para mayor claridad
+        df_resumen.rename(columns={"Código": "Barriles"}, inplace=True)
 
-
-
+        # Mostrar la tabla con el resumen de despachos por Cliente y Estilo
+        st.write("### Resumen de Ventas/Despachos por Cliente y Estilo")
+        st.dataframe(df_resumen)
 else:
-    st.error("No se cargaron datos.")
-
+    st.error("No se pudieron cargar los datos de la hoja de cálculo.")
