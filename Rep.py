@@ -246,18 +246,15 @@ else:
 ###########
 
 
-import pandas as pd
-import streamlit as st
-import numpy as np
 
-def obtener_datos_de_hoja(url):
-    hoja_calculo = pd.read_csv(url)
-    return hoja_calculo
-
-# URL de la hoja "DatosM"
-sheet_url_datosm = "URL_DE_LA_HOJA"
-df = obtener_datos_de_hoja(sheet_url_datosm)
-
+# Función para obtener los datos desde la hoja pública de Google Sheets en formato CSV.
+def obtener_datos_de_hoja(sheet_url, sheet_name):
+    try:
+        # Construir la URL para obtener el CSV (asegúrate de que la hoja esté publicada).
+        url = f"{sheet_url}/gviz/tq?tqx=out:csv&sheet={sheet_name}"
+        df = pd.read_csv(url)
+        df.columns = df.columns.str.strip()  # Limpiar espacios en los nombres de las columnas.
+        
 def obtener_capacidad(codigo):
     if isinstance(codigo, str):
         if codigo.startswith("20"):
