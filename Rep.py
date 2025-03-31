@@ -498,14 +498,15 @@ if not df.empty:
 
     # Comparación de ventas con meses anteriores
     st.subheader("Comparación con Meses Anteriores")
-    df_despachos["Mes"] = df_despachos["Marca temporal"].dt.to_period("M")
+    df_despachos["Mes"] = df_despachos["Marca temporal"].dt.strftime("%Y-%m")
     ventas_mensuales = df_despachos.groupby("Mes")["Barriles"].sum().reset_index()
     chart_comparacion = alt.Chart(ventas_mensuales).mark_bar().encode(
-        x="Mes:T",
+        x=alt.X("Mes:N", sort=None, title="Mes"),
         y="Barriles:Q",
         tooltip=["Mes", "Barriles"]
     ).properties(width=600, height=400)
     st.altair_chart(chart_comparacion, use_container_width=True)
+    
 else:
     st.error("No hay datos de despachos para mostrar.")
 
