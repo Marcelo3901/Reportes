@@ -293,9 +293,7 @@ if not df.empty:
     
     # Mostrar tabla de ventas
     st.subheader("Ventas/Despachos por Cliente y Estilo")
-    st.write(df_ventas)
-  
- st.write("Datos originales de Google Sheets:", df.head())    
+    st.write(df_ventas)  
 
 
 
