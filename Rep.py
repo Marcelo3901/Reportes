@@ -249,6 +249,7 @@ else:
 import pandas as pd
 import streamlit as st
 import altair as alt
+from datetime import datetime, timedelta
 
 # Función auxiliar: devuelve el primer valor no vacío entre los argumentos.
 def primer_no_vacio(*args):
@@ -260,19 +261,16 @@ def primer_no_vacio(*args):
 # Función para obtener los datos desde la hoja pública de Google Sheets en formato CSV.
 def obtener_datos_de_hoja(sheet_url, sheet_name):
     try:
-        # Construir la URL para obtener el CSV (asegúrate de que la hoja esté publicada).
         url = f"{sheet_url}/gviz/tq?tqx=out:csv&sheet={sheet_name}"
         df = pd.read_csv(url)
-        df.columns = df.columns.str.strip()  # Limpiar espacios en los nombres de las columnas.
+        df.columns = df.columns.str.strip()
 
-        # Verificar que existan las columnas requeridas.
         requeridas = ["Código", "Marca temporal", "Estado", "Estado.1", "Estilo", "Estilo.1", "Cliente", "Cliente.1"]
         faltantes = [col for col in requeridas if col not in df.columns]
         if faltantes:
             st.error(f"Faltan columnas requeridas: {faltantes}")
             return pd.DataFrame()
 
-        # Eliminar filas donde "Código" sea nulo o vacío.
         df = df[df["Código"].notna()]
         df = df[df["Código"].astype(str).str.strip() != ""]
 
@@ -281,9 +279,9 @@ def obtener_datos_de_hoja(sheet_url, sheet_name):
         st.error(f"Error al obtener datos: {e}")
         return pd.DataFrame()
 
-# Parámetros: URL base de la hoja y nombre de la hoja (deben coincidir exactamente).
+# Parámetros de la hoja de Google Sheets.
 sheet_url = "https://docs.google.com/spreadsheets/d/1FjQ8XBDwDdrlJZsNkQ6YyaygkHLhpKmfLBv6wd3uluY"
-sheet_name = "DatosM"  # Verifica que el nombre coincida exactamente con el de la pestaña.
+sheet_name = "DatosM"
 
 # Obtener los datos.
 df = obtener_datos_de_hoja(sheet_url, sheet_name)
@@ -295,22 +293,22 @@ if not df.empty:
     except Exception as e:
         st.error(f"Error al convertir 'Marca temporal': {e}")
 
-    # Ordenar por "Marca temporal" descendente y conservar solo el registro más reciente por "Código".
+    # Ordenar y conservar solo el registro más reciente por "Código".
     df = df.sort_values('Marca temporal', ascending=False)
     df = df.drop_duplicates(subset='Código', keep='first')
 
-    # Crear columnas "Estado_final" y "Estilo_final" combinando las variantes existentes.
+    # Crear columnas combinadas.
     df["Estado_final"] = df.apply(lambda row: primer_no_vacio(row.get("Estado", ""), row.get("Estado.1", "")), axis=1)
     df["Estilo_final"] = df.apply(lambda row: primer_no_vacio(row.get("Estilo", ""), row.get("Estilo.1", "")), axis=1)
 
-    # Normalizar: quitar espacios, pasar a minúsculas y eliminar acentos (si unidecode está disponible).
+    # Normalizar texto.
     df["Estado_final"] = df["Estado_final"].str.strip().str.lower()
     df["Estilo_final"] = df["Estilo_final"].str.strip()
 
-    # Filtrar solo los registros cuyo Estado sea "despacho".
+    # Filtrar solo registros con estado "despacho".
     df_filtrado = df[df["Estado"].str.strip().str.lower() == "despacho"]
 
-    # Función para determinar la capacidad (litros) según los dos primeros dígitos del código.
+    # Función para determinar la capacidad (litros) según el código.
     def obtener_capacidad(codigo):
         codigo_str = str(codigo).strip()
         if codigo_str.startswith("20"):
@@ -320,27 +318,45 @@ if not df.empty:
         elif codigo_str.startswith("58"):
             return 58
         else:
-            return 0  # Si no es un código reconocido.
+            return 0
 
-    # Calcular la capacidad de cada barril y almacenarla en la columna "Litros".
     df_filtrado["Litros"] = df_filtrado["Código"].apply(obtener_capacidad)
 
-    # Agrupar por "Cliente", "Estilo_final" para obtener la suma de litros y el número de barriles.
+    # Selección del tipo de reporte.
+    st.sidebar.header("Opciones de Reporte")
+    reporte_opcion = st.sidebar.selectbox("Seleccionar tipo de reporte:", ["Reporte Mensual", "Rango de Fechas"])
+
+    if reporte_opcion == "Reporte Mensual":
+        fecha_inicio = datetime.today().replace(day=1)  # Primer día del mes actual
+        fecha_fin = datetime.today()  # Hoy
+    else:
+        # Selección de rango de fechas.
+        fecha_inicio = st.sidebar.date_input("Fecha Inicial", datetime.today() - timedelta(days=30))
+        fecha_fin = st.sidebar.date_input("Fecha Final", datetime.today())
+
+    # Convertir fechas seleccionadas a datetime para filtrado.
+    fecha_inicio = pd.to_datetime(fecha_inicio)
+    fecha_fin = pd.to_datetime(fecha_fin) + timedelta(days=1)  # Incluir el día completo.
+
+    # Filtrar datos dentro del rango de fechas.
+    df_filtrado = df_filtrado[(df_filtrado["Marca temporal"] >= fecha_inicio) & (df_filtrado["Marca temporal"] < fecha_fin)]
+
+    # Agrupar datos por Cliente y Estilo.
     ventas_por_cliente = df_filtrado.groupby(["Cliente", "Estilo_final"])["Litros"].sum()
     ventas_por_barriles = df_filtrado.groupby(["Cliente", "Estilo_final"]).size()
 
-    # Crear un DataFrame con las dos series.
+    # Crear DataFrame con ventas.
     df_ventas = pd.DataFrame({
         "Litros": ventas_por_cliente,
         "Barriles": ventas_por_barriles
     }).reset_index()
 
-    # Mostrar el reporte de ventas.
+    # Mostrar el reporte.
     st.subheader("Reporte de Ventas")
     st.write(df_ventas)
 
-    # Crear un gráfico de barras con Altair para mostrar la sumatoria de barriles por cliente
-    ventas_por_cliente = df_filtrado.groupby('Cliente').size().reset_index(name='Barriles')  # Agrupar por cliente y contar barriles
+    # Crear gráfico de barriles despachados por cliente.
+    ventas_por_cliente = df_filtrado.groupby('Cliente').size().reset_index(name='Barriles')
 
     chart = alt.Chart(ventas_por_cliente).mark_bar().encode(
         x=alt.X('Cliente', sort='-y'),
@@ -348,7 +364,6 @@ if not df.empty:
         tooltip=['Cliente', 'Barriles']
     ).properties(width=600, height=400)
 
-    # Mostrar el gráfico
     st.markdown("---")
     st.subheader("Gráfico de Barriles Despachados por Cliente")
     st.altair_chart(chart, use_container_width=True)
