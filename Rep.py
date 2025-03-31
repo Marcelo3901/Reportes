@@ -378,7 +378,6 @@ else:
 
 ########
 
-
 import matplotlib.pyplot as plt
 from datetime import datetime
 
@@ -444,11 +443,27 @@ if not df.empty:
     ).properties(width=600, height=400)
     st.altair_chart(chart_litros, use_container_width=True)
 
+    # Colores personalizados para el gráfico de pastel de estilos más vendidos
+    colores_estilos = {
+        "Golden": "#f6ff33",
+        "IPA": "#20cb80",
+        "Barley Wine": "#6113c5",
+        "Session IPA": "#65f859",
+        "Trigo": "#ecc00f",
+        "Vienna Lager": "#e87118",
+        "Stout": "#3f3e3d",
+        "Otros": "#bbb6b2",
+        "Amber": "#f52615",
+        "Maracuya": "#e7e000",
+        "Brown Ale Cafe": "#135b08"
+    }
+
     # Gráfico de pastel de estilos más vendidos
     st.subheader("Distribución de Estilos Vendidos")
     fig, ax = plt.subplots()
     ventas_por_estilo = df_reporte.groupby("Estilo")["Litros"].sum()
-    ax.pie(ventas_por_estilo, labels=ventas_por_estilo.index, autopct='%1.1f%%', startangle=90, colors=plt.cm.Paired.colors)
+    colores = [colores_estilos.get(estilo, "#cccccc") for estilo in ventas_por_estilo.index]
+    ax.pie(ventas_por_estilo, labels=ventas_por_estilo.index, autopct='%1.1f%%', startangle=90, colors=colores)
     ax.axis("equal")
     st.pyplot(fig)
 
@@ -478,3 +493,4 @@ if not df.empty:
     st.altair_chart(chart_comparacion, use_container_width=True)
 else:
     st.error("No hay datos de despachos para mostrar.")
+
