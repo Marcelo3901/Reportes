@@ -246,6 +246,13 @@ else:
 ###########
 
 
+import pandas as pd
+import streamlit as st
+import altair as alt
+import matplotlib.pyplot as plt
+import seaborn as sns
+from gspread_dataframe import get_as_dataframe
+
 # Intentar importar unidecode; si no está instalado, definir una función que simplemente devuelva el mismo texto.
 try:
     from unidecode import unidecode
@@ -267,18 +274,18 @@ def obtener_datos_de_hoja(sheet_url, sheet_name):
         url = f"{sheet_url}/gviz/tq?tqx=out:csv&sheet={sheet_name}"
         df = pd.read_csv(url)
         df.columns = df.columns.str.strip()  # Limpiar espacios en los nombres de las columnas.
-        
+
         # Verificar que existan las columnas requeridas.
         requeridas = ["Código", "Marca temporal", "Estado", "Estado.1", "Estilo", "Estilo.1"]
         faltantes = [col for col in requeridas if col not in df.columns]
         if faltantes:
             st.error(f"Faltan columnas requeridas: {faltantes}")
             return pd.DataFrame()
-        
+
         # Eliminar filas donde "Código" sea nulo o vacío.
         df = df[df["Código"].notna()]
         df = df[df["Código"].astype(str).str.strip() != ""]
-        
+
         return df
     except Exception as e:
         st.error(f"Error al obtener datos: {e}")
@@ -297,66 +304,94 @@ if not df.empty:
         df['Marca temporal'] = pd.to_datetime(df['Marca temporal'], format='%d/%m/%Y %H:%M:%S')
     except Exception as e:
         st.error(f"Error al convertir 'Marca temporal': {e}")
-    
+
     # Ordenar por "Marca temporal" descendente y conservar solo el registro más reciente por "Código".
     df = df.sort_values('Marca temporal', ascending=False)
     df = df.drop_duplicates(subset='Código', keep='first')
-    
+
     # Crear columnas "Estado_final" y "Estilo_final" combinando las variantes existentes.
     df["Estado_final"] = df.apply(lambda row: primer_no_vacio(row.get("Estado", ""), row.get("Estado.1", "")), axis=1)
     df["Estilo_final"] = df.apply(lambda row: primer_no_vacio(row.get("Estilo", ""), row.get("Estilo.1", "")), axis=1)
-    
+
     # Normalizar: quitar espacios, pasar a minúsculas y eliminar acentos (si unidecode está disponible).
     df["Estado_final"] = df["Estado_final"].str.strip().str.lower().apply(unidecode)
     df["Estilo_final"] = df["Estilo_final"].str.strip().apply(unidecode)
-    
-    # Filtrar solo los registros cuyo Estado_final sea "despachado".
-    df_despacho = df[df["Estado_final"] == "despachado"]
-    
-    if df_despacho.empty:
-        st.warning("No hay registros de despachos.")
-    else:
-        # Función para determinar la capacidad (litros) según los dos primeros dígitos del código.
-        def obtener_capacidad(codigo):
-            codigo_str = str(codigo).strip()
-            if codigo_str.startswith("20"):
-                return 20
-            elif codigo_str.startswith("30"):
-                return 30
-            elif codigo_str.startswith("58"):
-                return 58
-            else:
-                return 0  # Si no es un código reconocido.
-        
-        # Calcular la capacidad de cada barril y almacenarla en la columna "Litros".
-        df_despacho["Litros"] = df_despacho["Código"].apply(obtener_capacidad)
-        
-        # Calcular totales.
-        total_barriles = df_despacho.shape[0]
-        litros_totales = df_despacho["Litros"].sum()
 
-        # Agrupar por "Estilo_final" y "Cliente" para obtener la suma de litros y el número de barriles.
-        df_resumen = df_despacho.groupby(["Cliente", "Estilo_final"]).agg({"Litros": "sum", "Código": "count"}).reset_index()
-        df_resumen = df_resumen.rename(columns={"Código": "Barriles"})
-        
-        # Mostrar el resumen en Streamlit.
-        st.write("### Ventas/Despachos por Cliente y Estilo")
-        st.write(df_resumen)
-        
-        st.subheader("Resumen del Inventario")
-        st.write(f"**Barriles Totales:** {total_barriles}")
-        st.write(f"**Litros Totales:** {litros_totales} litros")
-    
-        # Gráfico de Ventas/Despachos por Estilo
-        st.subheader("Ventas/Despachos por Estilo")
-        chart = alt.Chart(df_resumen).mark_bar().encode(
-            x=alt.X("Estilo_final", sort="-y"),
-            y="Litros",
-            color="Estilo_final",
-            tooltip=["Cliente", "Estilo_final", "Litros", "Barriles"]
+    # Filtrar los registros cuyo Estado_final sea "en cuarto frío" o "despacho".
+    df_filtrado = df[df["Estado_final"].isin(["en cuarto frío", "despacho"])]
+
+    # Función para determinar la capacidad (litros) según los dos primeros dígitos del código.
+    def obtener_capacidad(codigo):
+        codigo_str = str(codigo).strip()
+        if codigo_str.startswith("20"):
+            return 20
+        elif codigo_str.startswith("30"):
+            return 30
+        elif codigo_str.startswith("58"):
+            return 58
+        else:
+            return 0  # Si no es un código reconocido.
+
+    # Calcular la capacidad de cada barril y almacenarla en la columna "Litros".
+    df_filtrado["Litros"] = df_filtrado["Código"].apply(obtener_capacidad)
+
+    # Calcular totales.
+    total_barriles = df_filtrado.shape[0]
+    litros_totales = df_filtrado["Litros"].sum()
+
+    # Agrupar por "Estilo_final" para obtener la suma de litros y el número de barriles.
+    litros_por_estilo = df_filtrado.groupby("Estilo_final")["Litros"].sum()
+    barriles_por_estilo = df_filtrado.groupby("Estilo_final").size()
+
+    # Crear un DataFrame con ambas series.
+    df_litros = pd.DataFrame({
+        "Litros": litros_por_estilo,
+        "Barriles": barriles_por_estilo
+    }).reset_index()
+    df_litros.columns = ["Estilo", "Litros", "Barriles"]
+
+    # Agregar una columna "Alerta" que muestre un símbolo si los litros son menores a 200.
+    df_litros["Alerta"] = df_litros["Litros"].apply(lambda x: "⚠️" if x < 200 else "")
+
+    # Ordenar de mayor a menor según "Litros".
+    df_litros = df_litros.sort_values(by="Litros", ascending=False)
+
+    st.subheader("Litros por Estilo")
+    st.write(df_litros)
+
+    st.subheader("Resumen del Inventario")
+    st.write(f"**Barriles Totales:** {total_barriles}")
+    st.write(f"**Litros Totales:** {litros_totales} litros")
+
+    colores = {
+        "Golden": "#f6ff33",
+        "IPA": "#20cb80",
+        "Barley Wine": "#6113c5",
+        "Session IPA": "#65f859",
+        "Trigo": "#ecc00f",
+        "Vienna Lager": "#e87118",
+        "Stout": "#3f3e3d",
+        "Otros": "#bbb6b2",
+        "Amber": "#f52615",
+        "Maracuya": "#e7e000",
+        "Brown Ale Cafe": "#135b08"
+    }
+
+    # Verificar si df_litros tiene datos antes de graficar
+    if not df_litros.empty:
+        st.markdown("---")
+        st.subheader("Barriles por Estilo")
+
+        # Crear gráfico con Altair
+        chart = alt.Chart(df_litros).mark_bar().encode(
+            x=alt.X("Estilo", sort="-y"),
+            y="Barriles",
+            color=alt.Color("Estilo", scale=alt.Scale(domain=list(colores.keys()), range=list(colores.values()))),
+            tooltip=["Estilo", "Barriles"]
         ).properties(width=600, height=400)
 
-        # Mostrar gráfico
+        # Mostrar en Streamlit
         st.altair_chart(chart, use_container_width=True)
+
 else:
     st.error("No se cargaron datos.")
