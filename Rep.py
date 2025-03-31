@@ -5,6 +5,10 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from gspread_dataframe import get_as_dataframe
 
+# CONFIGURACIÓN DE LA PÁGINA
+st.set_page_config(page_title="REPORTES BARRILES", layout="centered")
+
+
 # Intentar importar unidecode; si no está instalado, definir una función que simplemente devuelva el mismo texto.
 try:
     from unidecode import unidecode
@@ -430,7 +434,7 @@ if not df.empty:
     
     df_reporte = df_despachos.groupby(["Cliente", "Estilo"]).agg({"Litros": "sum", "Barriles": "count"}).reset_index()
     
-    st.subheader("📊 Reporte de Ventas")
+    st.subheader("📊 Reporte de Ventas Barriles")
     st.write(df_reporte)
 
     # Gráfico de litros despachados por cliente
