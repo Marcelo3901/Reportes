@@ -443,7 +443,7 @@ if not df.empty:
     ).properties(width=600, height=400)
     st.altair_chart(chart_litros, use_container_width=True)
 
-    # Colores personalizados para el gráfico de pastel de estilos más vendidos
+     # Colores personalizados para el gráfico de pastel de estilos más vendidos
     colores_estilos = {
         "Golden": "#f6ff33",
         "IPA": "#20cb80",
@@ -454,18 +454,26 @@ if not df.empty:
         "Stout": "#3f3e3d",
         "Otros": "#bbb6b2",
         "Amber": "#f52615",
-        "Maracuyá": "#e7e000",
+        "Maracuy": "#e7e000",
         "Brown Ale Cafe": "#135b08"
     }
 
     # Gráfico de pastel de estilos más vendidos
     st.subheader("Distribución de Estilos Vendidos")
     fig, ax = plt.subplots()
-    ventas_por_estilo = df_reporte.groupby("Estilo")["Litros"].sum()
+    ventas_por_estilo = df_reporte.groupby("Estilo")["Litros"].sum().sort_values(ascending=False)
     colores = [colores_estilos.get(estilo, "#cccccc") for estilo in ventas_por_estilo.index]
-    ax.pie(ventas_por_estilo, labels=ventas_por_estilo.index, autopct='%1.1f%%', startangle=90, colors=colores)
+    wedges, texts, autotexts = ax.pie(ventas_por_estilo, labels=ventas_por_estilo.index, autopct='%1.1f%%', startangle=90, colors=colores)
+    
+    # Mejorar la visualización
+    for text in texts:
+        text.set_fontsize(10)
+    for autotext in autotexts:
+        autotext.set_fontsize(10)
+    
     ax.axis("equal")
     st.pyplot(fig)
+
 
     # Gráfico de líneas de tendencia de despachos en el tiempo
     st.subheader("Tendencia de Despachos en el Tiempo")
