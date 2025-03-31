@@ -240,6 +240,9 @@ if not inventario_total_latas.empty:
 else:
     print("No hay datos disponibles para generar el gráfico de latas.")
 
+
+
+
 # Función para obtener datos desde Google Sheets en formato CSV
 def obtener_datos_de_hoja(sheet_url, sheet_name):
     try:
@@ -291,27 +294,9 @@ if not df.empty:
     # Mostrar tabla de ventas
     st.subheader("Ventas/Despachos por Cliente y Estilo")
     st.write(df_ventas)
+  
+st.write("Datos originales de Google Sheets:", df.head())    
     
-    # Gráfico de litros vendidos por cliente
-    chart_clientes = alt.Chart(df_ventas).mark_bar().encode(
-        x=alt.X("Cliente", sort="-y"),
-        y="Litros",
-        color="Cliente",
-        tooltip=["Cliente", "Litros"]
-    ).properties(width=600, height=400)
-    st.subheader("Litros Vendidos por Cliente")
-    st.altair_chart(chart_clientes, use_container_width=True)
-    
-    # Gráfico de litros vendidos por estilo
-    chart_estilos = alt.Chart(df_ventas).mark_bar().encode(
-        x=alt.X("Estilo", sort="-y"),
-        y="Litros",
-        color="Estilo",
-        tooltip=["Estilo", "Litros"]
-    ).properties(width=600, height=400)
-    st.subheader("Litros Vendidos por Estilo")
-    st.altair_chart(chart_estilos, use_container_width=True)
 else:
     st.error("No se cargaron datos.")
-
 
