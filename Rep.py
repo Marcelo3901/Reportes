@@ -324,9 +324,9 @@ if not df.empty:
 
     # Selección del tipo de reporte.
     st.sidebar.header("Opciones de Reporte")
-    reporte_opcion = st.sidebar.selectbox("Seleccionar tipo de reporte:", ["Reporte Mensual", "Rango de Fechas"])
+    reporte_opcion = st.sidebar.selectbox("Seleccionar tipo de reporte:", ["Reporte Total", "Rango de Fechas"])
 
-    if reporte_opcion == "Reporte Mensual":
+    if reporte_opcion == "Reporte Total":
         fecha_inicio = datetime.today().replace(day=1)  # Primer día del mes actual
         fecha_fin = datetime.today()  # Hoy
     else:
