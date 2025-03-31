@@ -240,48 +240,78 @@ if not inventario_total_latas.empty:
 else:
     print("No hay datos disponibles para generar el gráfico de latas.")
 
-# Función para calcular las ventas o despachos
-def generar_reporte_despachos(df):
-    # Filtrar solo los barriles despachados
-    df_despachados = df[df["Estado_final"] == "despachado"]
-    
-    # Agrupar por Cliente y Estilo
-    df_reporte = df_despachados.groupby(["Cliente", "Estilo_final"]).agg(
-        Barriles=("Código", "count"),  # Contar barriles
-        Litros=("Litros", "sum")  # Sumar litros
-    ).reset_index()
-    
-    # Ordenar de mayor a menor por litros
-    df_reporte = df_reporte.sort_values(by="Litros", ascending=False)
-    
-    return df_reporte
+# Función para obtener datos desde Google Sheets en formato CSV
+def obtener_datos_de_hoja(sheet_url, sheet_name):
+    try:
+        url = f"{sheet_url}/gviz/tq?tqx=out:csv&sheet={sheet_name}"
+        df = pd.read_csv(url)
+        df.columns = df.columns.str.strip()
+        
+        # Verificar columnas requeridas
+        requeridas = ["Código", "Marca temporal", "Cliente", "Estilo", "Estado"]
+        faltantes = [col for col in requeridas if col not in df.columns]
+        if faltantes:
+            st.error(f"Faltan columnas requeridas: {faltantes}")
+            return pd.DataFrame()
+        
+        df = df[df["Código"].notna() & df["Código"].astype(str).str.strip() != ""]
+        return df
+    except Exception as e:
+        st.error(f"Error al obtener datos: {e}")
+        return pd.DataFrame()
 
-# Cargar datos desde la hoja de cálculo (suponiendo que df ya está cargado)
+# Parámetros de la hoja de cálculo
+sheet_url = "https://docs.google.com/spreadsheets/d/1FjQ8XBDwDdrlJZsNkQ6YyaygkHLhpKmfLBv6wd3uluY"
+sheet_name = "DatosM"
+
+df = obtener_datos_de_hoja(sheet_url, sheet_name)
+
 if not df.empty:
-    df_despachos = generar_reporte_despachos(df)
+    df['Marca temporal'] = pd.to_datetime(df['Marca temporal'], errors='coerce')
+    df = df.sort_values('Marca temporal', ascending=False)
+    df = df.drop_duplicates(subset='Código', keep='first')
     
-    st.markdown("---")
-    st.subheader("Reporte de Ventas / Despachos")
-    st.write(df_despachos)
+    # Filtrar solo los registros que han sido despachados
+    df_despacho = df[df["Estado"].str.lower().str.strip() == "despachado"]
     
-    # Gráfico de despachos por cliente
-    st.subheader("Despachos por Cliente")
-    chart_cliente = alt.Chart(df_despachos).mark_bar().encode(
+    # Función para obtener capacidad de barril
+    def obtener_capacidad(codigo):
+        codigo_str = str(codigo).strip()
+        if codigo_str.startswith("20"): return 20
+        elif codigo_str.startswith("30"): return 30
+        elif codigo_str.startswith("58"): return 58
+        else: return 0
+    
+    df_despacho["Litros"] = df_despacho["Código"].apply(obtener_capacidad)
+    
+    # Agrupar datos
+    df_ventas = df_despacho.groupby(["Cliente", "Estilo"]).agg({"Litros": "sum", "Código": "count"}).reset_index()
+    df_ventas.columns = ["Cliente", "Estilo", "Litros", "Barriles"]
+    
+    # Mostrar tabla de ventas
+    st.subheader("Ventas/Despachos por Cliente y Estilo")
+    st.write(df_ventas)
+    
+    # Gráfico de litros vendidos por cliente
+    chart_clientes = alt.Chart(df_ventas).mark_bar().encode(
         x=alt.X("Cliente", sort="-y"),
         y="Litros",
-        tooltip=["Cliente", "Estilo_final", "Barriles", "Litros"],
-        color=alt.Color("Cliente", scale=alt.Scale(scheme="category20"))
-    ).properties(width=700, height=400)
-    st.altair_chart(chart_cliente, use_container_width=True)
+        color="Cliente",
+        tooltip=["Cliente", "Litros"]
+    ).properties(width=600, height=400)
+    st.subheader("Litros Vendidos por Cliente")
+    st.altair_chart(chart_clientes, use_container_width=True)
     
-    # Gráfico de despachos por estilo
-    st.subheader("Despachos por Estilo")
-    chart_estilo = alt.Chart(df_despachos).mark_bar().encode(
-        x=alt.X("Estilo_final", sort="-y"),
+    # Gráfico de litros vendidos por estilo
+    chart_estilos = alt.Chart(df_ventas).mark_bar().encode(
+        x=alt.X("Estilo", sort="-y"),
         y="Litros",
-        tooltip=["Cliente", "Estilo_final", "Barriles", "Litros"],
-        color=alt.Color("Estilo_final", scale=alt.Scale(scheme="category10"))
-    ).properties(width=700, height=400)
-    st.altair_chart(chart_estilo, use_container_width=True)
+        color="Estilo",
+        tooltip=["Estilo", "Litros"]
+    ).properties(width=600, height=400)
+    st.subheader("Litros Vendidos por Estilo")
+    st.altair_chart(chart_estilos, use_container_width=True)
 else:
-    st.error("No se encontraron datos para generar el reporte.")
+    st.error("No se cargaron datos.")
+
+
