@@ -370,3 +370,109 @@ if not df.empty:
 
 else:
     st.error("No se cargaron datos.")
+
+
+
+
+
+
+########
+
+
+
+
+
+# Función para obtener los datos desde la hoja pública de Google Sheets en formato CSV.
+def obtener_datos_de_hoja(sheet_url, sheet_name):
+    try:
+        url = f"{sheet_url}/gviz/tq?tqx=out:csv&sheet={sheet_name}"
+        df = pd.read_csv(url)
+        df.columns = df.columns.str.strip()
+        
+        # Verificar que existan las columnas requeridas.
+        requeridas = ["Código", "Marca temporal", "Estado", "Cliente", "Estilo"]
+        faltantes = [col for col in requeridas if col not in df.columns]
+        if faltantes:
+            st.error(f"Faltan columnas requeridas: {faltantes}")
+            return pd.DataFrame()
+        
+        df = df[df["Código"].notna() & df["Cliente"].notna() & df["Estado"].notna()]
+        df['Marca temporal'] = pd.to_datetime(df['Marca temporal'], errors='coerce')
+        df = df.dropna(subset=['Marca temporal'])
+        
+        return df
+    except Exception as e:
+        st.error(f"Error al obtener datos: {e}")
+        return pd.DataFrame()
+
+# Parámetros: URL base de la hoja y nombre de la hoja.
+sheet_url = "https://docs.google.com/spreadsheets/d/1FjQ8XBDwDdrlJZsNkQ6YyaygkHLhpKmfLBv6wd3uluY"
+sheet_name = "DatosM"
+
+df = obtener_datos_de_hoja(sheet_url, sheet_name)
+
+if not df.empty:
+    df_despachos = df[df["Estado"].str.lower().str.strip() == "despacho"].copy()
+    
+    # Calcular la capacidad de los barriles
+def obtener_capacidad(codigo):
+        codigo_str = str(codigo).strip()
+        if codigo_str.startswith("20"):
+            return 20
+        elif codigo_str.startswith("30"):
+            return 30
+        elif codigo_str.startswith("58"):
+            return 58
+        else:
+            return 0
+
+df_despachos["Litros"] = df_despachos["Código"].apply(obtener_capacidad)
+
+df_reporte = df_despachos.groupby(["Cliente", "Estilo"]).agg({"Litros": "sum", "Código": "count"}).reset_index()
+df_reporte.rename(columns={"Código": "Barriles"}, inplace=True)
+
+st.subheader("📊 Reporte de Ventas")
+st.write(df_reporte)
+
+# Gráfico de litros despachados por cliente
+st.subheader("Litros Despachados por Cliente")
+chart_litros = alt.Chart(df_reporte).mark_bar().encode(
+    x=alt.X("Cliente", sort="-y"),
+    y="Litros",
+    color="Cliente",
+    tooltip=["Cliente", "Litros"]
+).properties(width=600, height=400)
+st.altair_chart(chart_litros, use_container_width=True)
+
+# Gráfico de pastel de estilos más vendidos
+st.subheader("Distribución de Estilos Vendidos")
+fig, ax = plt.subplots()
+ventas_por_estilo = df_reporte.groupby("Estilo")["Litros"].sum()
+ax.pie(ventas_por_estilo, labels=ventas_por_estilo.index, autopct='%1.1f%%', startangle=90, colors=plt.cm.Paired.colors)
+ax.axis("equal")
+st.pyplot(fig)
+
+# Gráfico de líneas de tendencia de despachos en el tiempo
+st.subheader("Tendencia de Despachos en el Tiempo")
+df_despachos["Fecha"] = df_despachos["Marca temporal"].dt.date
+ventas_tiempo = df_despachos.groupby("Fecha")["Barriles"].sum().reset_index()
+chart_tendencia = alt.Chart(ventas_tiempo).mark_line(point=True).encode(
+    x="Fecha:T",
+    y="Barriles:Q",
+    tooltip=["Fecha", "Barriles"]
+).properties(width=600, height=400)
+st.altair_chart(chart_tendencia, use_container_width=True)
+
+# Comparación de ventas con meses anteriores
+st.subheader("Comparación con Meses Anteriores")
+df_despachos["Mes"] = df_despachos["Marca temporal"].dt.to_period("M")
+ventas_mensuales = df_despachos.groupby("Mes")["Barriles"].sum().reset_index()
+chart_comparacion = alt.Chart(ventas_mensuales).mark_bar().encode(
+    x="Mes:T",
+    y="Barriles:Q",
+    tooltip=["Mes", "Barriles"]
+).properties(width=600, height=400)
+st.altair_chart(chart_comparacion, use_container_width=True)
+
+else:
+    st.error("No hay datos de despachos para mostrar.")
