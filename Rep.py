@@ -317,8 +317,8 @@ if not df.empty:
     df["Estado_final"] = df["Estado_final"].str.strip().str.lower().apply(unidecode)
     df["Estilo_final"] = df["Estilo_final"].str.strip().apply(unidecode)
 
-    # Filtrar los registros cuyo Estado_final sea "en cuarto frío" o "despacho".
-    df_filtrado = df[df["Estado_final"].isin(["en cuarto frío", "despacho"])]
+    # Filtrar los registros cuyo Estado_final sea "despacho".
+    df_filtrado = df[df["Estado_final"].isin(["despacho"])]
 
     # Función para determinar la capacidad (litros) según los dos primeros dígitos del código.
     def obtener_capacidad(codigo):
@@ -349,9 +349,6 @@ if not df.empty:
         "Barriles": barriles_por_estilo
     }).reset_index()
     df_litros.columns = ["Estilo", "Litros", "Barriles"]
-
-    # Agregar una columna "Alerta" que muestre un símbolo si los litros son menores a 200.
-    df_litros["Alerta"] = df_litros["Litros"].apply(lambda x: "⚠️" if x < 200 else "")
 
     # Ordenar de mayor a menor según "Litros".
     df_litros = df_litros.sort_values(by="Litros", ascending=False)
