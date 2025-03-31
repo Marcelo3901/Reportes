@@ -9,7 +9,7 @@ from gspread_dataframe import get_as_dataframe
 st.set_page_config(page_title="REPORTES BARRILES", layout="centered")
 
 
-st.markdown("<h1 style='text-align:center; color:#20cb80;'>🍺 REPORTE BARRILES Y LATAS - CASTIZA </h1>", unsafe_allow_html=True)
+st.markdown("<h1 style='text-align:center; color:#20cb80;'>🍺 REPORTE BARRILES Y LATAS   CASTIZA </h1>", unsafe_allow_html=True)
 
 # Intentar importar unidecode; si no está instalado, definir una función que simplemente devuelva el mismo texto.
 try:
