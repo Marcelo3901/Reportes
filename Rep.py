@@ -246,27 +246,18 @@ else:
 ###########
 
 
-# Función para obtener los datos desde la hoja pública de Google Sheets en formato CSV.
-def obtener_datos_de_hoja(sheet_url):
-    try:
-        # Construir la URL para obtener el CSV (asegúrate de que la hoja esté publicada).
-        url = f"{sheet_url}/gviz/tq?tqx=out:csv&sheet=DatosM"
-        df = pd.read_csv(url)
-        df.columns = df.columns.str.strip()  # Limpiar espacios en los nombres de las columnas.
-        
-        # Verificar que existan las columnas requeridas.
-        columnas_necesarias = ["Código", "Estado", "Cliente", "Estilo"]
-        faltantes = [col for col in columnas_necesarias if col not in df.columns]
-        if faltantes:
-            st.error(f"Faltan columnas requeridas: {faltantes}")
-            return pd.DataFrame()  # Retornar un DataFrame vacío si faltan columnas
-        
-        return df
-    except Exception as e:
-        st.error(f"Error al obtener datos: {e}")
-        return pd.DataFrame()
+import pandas as pd
+import streamlit as st
+import numpy as np
 
-# Función para obtener la capacidad de cada barril en litros
+def obtener_datos_de_hoja(url):
+    hoja_calculo = pd.read_csv(url)
+    return hoja_calculo
+
+# URL de la hoja "DatosM"
+sheet_url_datosm = "URL_DE_LA_HOJA"
+df = obtener_datos_de_hoja(sheet_url_datosm)
+
 def obtener_capacidad(codigo):
     if isinstance(codigo, str):
         if codigo.startswith("20"):
@@ -275,36 +266,30 @@ def obtener_capacidad(codigo):
             return 30
         elif codigo.startswith("58"):
             return 58
-    return 0  # Retorna 0 si no tiene un código válido
+    return np.nan
 
-# URL de la hoja "DatosM" (asegúrate de colocar la URL correcta de la hoja pública de Google Sheets)
-sheet_url_datosm = "https://docs.google.com/spreadsheets/d/1FjQ8XBDwDdrlJZsNkQ6YyaygkHLhpKmfLBv6wd3uluY"
+# Verificar si las columnas necesarias existen
+df = df.rename(columns=lambda x: x.strip())  # Eliminar espacios en nombres de columnas
+columnas_necesarias = {"Estado", "Cliente", "Código", "Estilo"}
 
-# Obtener los datos de la hoja de Google Sheets
-df = obtener_datos_de_hoja(sheet_url_datosm)
+if columnas_necesarias.issubset(df.columns):
+    # Mostrar los valores únicos de la columna 'Estado' para verificar su contenido
+    st.write("Valores únicos en la columna 'Estado':", df["Estado"].unique())
 
-# Verificar si el DataFrame no está vacío
-if not df.empty:
-    # Filtrar solo los registros con el estado "despachado"
-    df_despacho = df[df["Estado"].str.lower().str.strip() == "despachado"].copy()
+    # Filtrar solo los registros con el estado "despachado" sin importar mayúsculas/minúsculas
+    df_despacho = df[df["Estado"].str.strip().str.lower() == "despachado"].copy()
     
-    # Verificar si hay registros de despachos
     if df_despacho.empty:
         st.warning("No hay registros de despachos.")
     else:
-        # Aplicar la función para obtener la capacidad del barril (Litros)
+        # Aplicar la función para obtener la capacidad del barril
         df_despacho["Litros"] = df_despacho["Código"].apply(obtener_capacidad)
         
-        # Agrupar los datos por Cliente y Estilo, y calcular la suma de Litros y el conteo de Barriles
-        df_resumen = df_despacho.groupby(["Cliente", "Estilo"]).agg(
-            {"Litros": "sum", "Código": "count"}  # Sumar Litros y contar Barriles
-        ).reset_index()
+        # Agrupar los datos por Cliente y Estilo de Cerveza
+        df_resumen = df_despacho.groupby(["Cliente", "Estilo"]).agg({"Litros": "sum", "Código": "count"}).reset_index()
+        df_resumen = df_resumen.rename(columns={"Código": "Barriles"})
         
-        # Renombrar las columnas para mayor claridad
-        df_resumen.rename(columns={"Código": "Barriles"}, inplace=True)
-
-        # Mostrar la tabla con el resumen de despachos por Cliente y Estilo
-        st.write("### Resumen de Ventas/Despachos por Cliente y Estilo")
+        st.write("### Ventas/Despachos por Cliente y Estilo")
         st.dataframe(df_resumen)
 else:
-    st.error("No se pudieron cargar los datos de la hoja de cálculo.")
+    st.error(f"Faltan columnas necesarias en la hoja de cálculo: {columnas_necesarias - set(df.columns)}")
