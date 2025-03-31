@@ -295,8 +295,10 @@ if not df.empty:
     st.subheader("Ventas/Despachos por Cliente y Estilo")
     st.write(df_ventas)
   
-st.write("Datos originales de Google Sheets:", df.head())    
-    
+ st.write("Datos originales de Google Sheets:", df.head())    
+
+
+
 else:
     st.error("No se cargaron datos.")
 
