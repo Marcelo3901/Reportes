@@ -379,7 +379,8 @@ else:
 ########
 
 
-
+import matplotlib.pyplot as plt
+from datetime import datetime
 
 # Función para obtener los datos desde la hoja pública de Google Sheets en formato CSV.
 def obtener_datos_de_hoja(sheet_url, sheet_name):
@@ -426,9 +427,10 @@ if not df.empty:
             return 0
 
     df_despachos["Litros"] = df_despachos["Código"].apply(obtener_capacidad)
-    df_reporte = df_despachos.groupby(["Cliente", "Estilo"]).agg({"Litros": "sum", "Código": "count"}).reset_index()
-    df_reporte.rename(columns={"Código": "Barriles"}, inplace=True)
-
+    df_despachos["Barriles"] = 1  # Contar cada despacho como un barril
+    
+    df_reporte = df_despachos.groupby(["Cliente", "Estilo"]).agg({"Litros": "sum", "Barriles": "count"}).reset_index()
+    
     st.subheader("📊 Reporte de Ventas")
     st.write(df_reporte)
 
@@ -453,13 +455,16 @@ if not df.empty:
     # Gráfico de líneas de tendencia de despachos en el tiempo
     st.subheader("Tendencia de Despachos en el Tiempo")
     df_despachos["Fecha"] = df_despachos["Marca temporal"].dt.date
-    ventas_tiempo = df_despachos.groupby("Fecha")["Barriles"].sum().reset_index()
-    chart_tendencia = alt.Chart(ventas_tiempo).mark_line(point=True).encode(
-        x="Fecha:T",
-        y="Barriles:Q",
-        tooltip=["Fecha", "Barriles"]
-    ).properties(width=600, height=400)
-    st.altair_chart(chart_tendencia, use_container_width=True)
+    if "Barriles" in df_despachos.columns:
+        ventas_tiempo = df_despachos.groupby("Fecha")["Barriles"].sum().reset_index()
+        chart_tendencia = alt.Chart(ventas_tiempo).mark_line(point=True).encode(
+            x="Fecha:T",
+            y="Barriles:Q",
+            tooltip=["Fecha", "Barriles"]
+        ).properties(width=600, height=400)
+        st.altair_chart(chart_tendencia, use_container_width=True)
+    else:
+        st.warning("No hay suficientes datos para generar la tendencia de despachos.")
 
     # Comparación de ventas con meses anteriores
     st.subheader("Comparación con Meses Anteriores")
