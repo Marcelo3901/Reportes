@@ -239,3 +239,49 @@ if not inventario_total_latas.empty:
     plt.show()
 else:
     print("No hay datos disponibles para generar el gráfico de latas.")
+
+# Función para calcular las ventas o despachos
+def generar_reporte_despachos(df):
+    # Filtrar solo los barriles despachados
+    df_despachados = df[df["Estado_final"] == "despachado"]
+    
+    # Agrupar por Cliente y Estilo
+    df_reporte = df_despachados.groupby(["Cliente", "Estilo_final"]).agg(
+        Barriles=("Código", "count"),  # Contar barriles
+        Litros=("Litros", "sum")  # Sumar litros
+    ).reset_index()
+    
+    # Ordenar de mayor a menor por litros
+    df_reporte = df_reporte.sort_values(by="Litros", ascending=False)
+    
+    return df_reporte
+
+# Cargar datos desde la hoja de cálculo (suponiendo que df ya está cargado)
+if not df.empty:
+    df_despachos = generar_reporte_despachos(df)
+    
+    st.markdown("---")
+    st.subheader("Reporte de Ventas / Despachos")
+    st.write(df_despachos)
+    
+    # Gráfico de despachos por cliente
+    st.subheader("Despachos por Cliente")
+    chart_cliente = alt.Chart(df_despachos).mark_bar().encode(
+        x=alt.X("Cliente", sort="-y"),
+        y="Litros",
+        tooltip=["Cliente", "Estilo_final", "Barriles", "Litros"],
+        color=alt.Color("Cliente", scale=alt.Scale(scheme="category20"))
+    ).properties(width=700, height=400)
+    st.altair_chart(chart_cliente, use_container_width=True)
+    
+    # Gráfico de despachos por estilo
+    st.subheader("Despachos por Estilo")
+    chart_estilo = alt.Chart(df_despachos).mark_bar().encode(
+        x=alt.X("Estilo_final", sort="-y"),
+        y="Litros",
+        tooltip=["Cliente", "Estilo_final", "Barriles", "Litros"],
+        color=alt.Color("Estilo_final", scale=alt.Scale(scheme="category10"))
+    ).properties(width=700, height=400)
+    st.altair_chart(chart_estilo, use_container_width=True)
+else:
+    st.error("No se encontraron datos para generar el reporte.")
