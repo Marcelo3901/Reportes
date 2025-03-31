@@ -454,7 +454,7 @@ if not df.empty:
         "Stout": "#3f3e3d",
         "Otros": "#bbb6b2",
         "Amber": "#f52615",
-        "Maracuya": "#e7e000",
+        "Maracuyá": "#e7e000",
         "Brown Ale Cafe": "#135b08"
     }
 
