@@ -246,6 +246,10 @@ else:
 ###########
 
 
+import pandas as pd
+import streamlit as st
+import altair as alt
+
 # Función auxiliar: devuelve el primer valor no vacío entre los argumentos.
 def primer_no_vacio(*args):
     for a in args:
@@ -335,6 +339,19 @@ if not df.empty:
     st.subheader("Reporte de Ventas")
     st.write(df_ventas)
 
+    # Crear un gráfico de barras con Altair para mostrar la sumatoria de barriles por cliente
+    ventas_por_cliente = df_filtrado.groupby('Cliente').size().reset_index(name='Barriles')  # Agrupar por cliente y contar barriles
+
+    chart = alt.Chart(ventas_por_cliente).mark_bar().encode(
+        x=alt.X('Cliente', sort='-y'),
+        y='Barriles',
+        tooltip=['Cliente', 'Barriles']
+    ).properties(width=600, height=400)
+
+    # Mostrar el gráfico
+    st.markdown("---")
+    st.subheader("Gráfico de Barriles Despachados por Cliente")
+    st.altair_chart(chart, use_container_width=True)
+
 else:
     st.error("No se cargaron datos.")
-
