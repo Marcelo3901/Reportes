@@ -246,9 +246,6 @@ else:
 ###########
 
 
-import pandas as pd
-import streamlit as st
-
 # Función para obtener los datos desde la hoja pública de Google Sheets en formato CSV.
 def obtener_datos_de_hoja(sheet_url):
     try:
