@@ -27,6 +27,67 @@ LITROS_POR_LATA = 0.330
 ESTADOS_DESPACHO = {"despacho", "despachado"}
 ESTADO_CUARTO_FRIO = "en cuarto frio"
 
+COLOR_PRIMARIO = "#20CB80"
+COLOR_DORADO = "#F2C14E"
+COLOR_BARRIL = "#8B5E3C"
+COLOR_LATA = "#20CB80"
+COLOR_ALERTA = "#E45756"
+COLOR_OK = "#2A9D8F"
+UMBRAL_ALERTA_PREDETERMINADO = 200.0
+
+COLORES_PRESENTACION = {
+    "Barril": COLOR_BARRIL,
+    "Lata": COLOR_LATA,
+}
+
+COLORES_ESTILOS = {
+    "Golden": "#E4BE24",
+    "IPA": "#18A66A",
+    "Barley Wine": "#6A3D9A",
+    "Session IPA": "#5BCB5A",
+    "Trigo": "#D9A90D",
+    "Vienna Lager": "#E8751A",
+    "Vienna": "#E8751A",
+    "Stout": "#3F3E3D",
+    "Otros": "#A9A6A3",
+    "Amber": "#E84A3A",
+    "Maracuy\u00e1": "#D6C900",
+    "Maracuya": "#D6C900",
+    "Brown Ale Cafe": "#5A7A35",
+    "Brown Ale Caf\u00e9": "#5A7A35",
+    "Catharina Sour": "#E76F92",
+    "Gose": "#5EAAA8",
+    "Imperial IPA": "#2E8B57",
+    "NEIPA": "#80B918",
+    "Imperial Stout": "#1F1F1F",
+    "Sin definir": "#9AA5A8",
+}
+
+PALETA_SUPLENTE = [
+    "#277DA1",
+    "#F9844A",
+    "#43AA8B",
+    "#F94144",
+    "#577590",
+    "#90BE6D",
+    "#F8961E",
+    "#9B5DE5",
+    "#00BBF9",
+    "#F15BB5",
+    "#6D597A",
+    "#457B9D",
+]
+
+ORDEN_DIAS = [
+    "Lunes",
+    "Martes",
+    "Mi\u00e9rcoles",
+    "Jueves",
+    "Viernes",
+    "S\u00e1bado",
+    "Domingo",
+]
+
 
 # -----------------------------------------------------------------------------
 # FUNCIONES DE LIMPIEZA Y LECTURA
@@ -425,6 +486,161 @@ def construir_despachos(
 # -----------------------------------------------------------------------------
 # FORMATO Y COMPONENTES VISUALES
 # -----------------------------------------------------------------------------
+def aplicar_estilos_css() -> None:
+    st.markdown(
+        """
+        <style>
+        :root {
+            --castiza-green: #20CB80;
+            --castiza-gold: #F2C14E;
+            --castiza-dark: #163C31;
+            --castiza-text: #213238;
+        }
+        .stApp {
+            background:
+                radial-gradient(circle at 8% 0%, rgba(32,203,128,.13), transparent 28%),
+                radial-gradient(circle at 96% 4%, rgba(242,193,78,.16), transparent 25%),
+                linear-gradient(180deg, #F9FCFA 0%, #EDF5F1 100%);
+            color: var(--castiza-text);
+        }
+        .block-container {
+            max-width: 1550px;
+            padding-top: 1.15rem;
+            padding-bottom: 2.5rem;
+        }
+        .hero-castiza {
+            background: linear-gradient(120deg, #163C31 0%, #1F6650 58%, #20A875 100%);
+            border: 1px solid rgba(255,255,255,.18);
+            border-radius: 24px;
+            padding: 1.45rem 1.7rem;
+            margin-bottom: 1.1rem;
+            box-shadow: 0 16px 40px rgba(22,60,49,.18);
+            color: white;
+        }
+        .hero-castiza h1 {
+            margin: 0;
+            color: white;
+            font-size: clamp(1.7rem, 3vw, 2.7rem);
+            letter-spacing: -.03em;
+        }
+        .hero-castiza p {
+            margin: .5rem 0 0;
+            color: rgba(255,255,255,.85);
+            font-size: 1rem;
+            max-width: 980px;
+        }
+        .hero-chip {
+            display: inline-block;
+            margin-top: .9rem;
+            margin-right: .45rem;
+            padding: .34rem .72rem;
+            border-radius: 999px;
+            background: rgba(255,255,255,.13);
+            border: 1px solid rgba(255,255,255,.20);
+            font-size: .82rem;
+            font-weight: 700;
+        }
+        [data-testid="stMetric"] {
+            background: linear-gradient(145deg, rgba(255,255,255,.98), rgba(245,251,248,.96));
+            border: 1px solid rgba(32,203,128,.16);
+            border-left: 5px solid var(--castiza-green);
+            border-radius: 16px;
+            padding: .85rem 1rem;
+            box-shadow: 0 8px 22px rgba(33,50,56,.07);
+            min-height: 112px;
+        }
+        [data-testid="stMetricLabel"] {
+            color: #5C6C70;
+            font-weight: 750;
+        }
+        [data-testid="stMetricValue"] {
+            color: #163C31;
+            font-weight: 850;
+        }
+        [data-testid="stSidebar"] {
+            background: linear-gradient(180deg, #163C31 0%, #1F5A48 100%);
+        }
+        [data-testid="stSidebar"] * {
+            color: #F4FBF8;
+        }
+        [data-testid="stSidebar"] input,
+        [data-testid="stSidebar"] [data-baseweb="select"] > div {
+            color: #213238 !important;
+            background: white !important;
+        }
+        .stTabs [data-baseweb="tab-list"] {
+            gap: .35rem;
+            padding: .3rem;
+            border-radius: 14px;
+            background: rgba(255,255,255,.78);
+            border: 1px solid rgba(32,203,128,.14);
+        }
+        .stTabs [data-baseweb="tab"] {
+            border-radius: 10px;
+            font-weight: 750;
+            padding-left: .9rem;
+            padding-right: .9rem;
+        }
+        .stTabs [aria-selected="true"] {
+            color: #116B4A !important;
+            background: rgba(32,203,128,.10) !important;
+        }
+        .stButton > button,
+        .stDownloadButton > button {
+            border-radius: 12px;
+            border: 1px solid rgba(32,203,128,.34);
+            font-weight: 750;
+            transition: all .18s ease;
+        }
+        .stButton > button:hover,
+        .stDownloadButton > button:hover {
+            border-color: var(--castiza-green);
+            color: #126B4B;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 14px rgba(32,203,128,.16);
+        }
+        [data-testid="stDataFrame"],
+        [data-testid="stTable"] {
+            border: 1px solid rgba(33,50,56,.09);
+            border-radius: 14px;
+            overflow: hidden;
+            box-shadow: 0 8px 22px rgba(33,50,56,.05);
+        }
+        .section-note {
+            background: white;
+            border: 1px solid rgba(32,203,128,.17);
+            border-left: 5px solid var(--castiza-gold);
+            border-radius: 14px;
+            padding: .85rem 1rem;
+            margin: .3rem 0 1rem;
+            color: #415257;
+        }
+        h2, h3, h4 { color: #173F33; }
+        hr { border-color: rgba(33,50,56,.10); }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def mostrar_encabezado() -> None:
+    st.markdown(
+        """
+        <div class="hero-castiza">
+            <h1>&#127866; Reporte de barriles y latas</h1>
+            <p>
+                Inventario, despachos y litros equivalentes en un solo panel. Los datos se
+                leen directamente de Google Sheets y cada lata se convierte a 0,330 litros.
+            </p>
+            <span class="hero-chip">Inventario en tiempo real</span>
+            <span class="hero-chip">Barriles + latas</span>
+            <span class="hero-chip">Gr&aacute;ficos interactivos</span>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
 def hoy_bogota() -> date:
     try:
         return datetime.now(ZoneInfo("America/Bogota")).date()
@@ -439,13 +655,63 @@ def formato_numero(valor: float, decimales: int = 0) -> str:
 
 def normalizar_tipos_resumen(df: pd.DataFrame) -> pd.DataFrame:
     resultado = df.copy()
-    for columna in ["Barriles", "Latas"]:
+    for columna in ["Barriles", "Latas", "Movimientos"]:
         if columna in resultado.columns:
             resultado[columna] = resultado[columna].fillna(0).round().astype(int)
-    for columna in ["Litros barriles", "Litros latas", "Litros totales"]:
+    for columna in ["Litros barriles", "Litros latas", "Litros totales", "Litros"]:
         if columna in resultado.columns:
             resultado[columna] = resultado[columna].fillna(0).round(2)
     return resultado
+
+
+def escala_estilos(valores: list[str] | pd.Series) -> alt.Scale:
+    estilos = list(dict.fromkeys(str(valor) for valor in list(valores) if str(valor).strip()))
+    colores = [
+        COLORES_ESTILOS.get(estilo, PALETA_SUPLENTE[i % len(PALETA_SUPLENTE)])
+        for i, estilo in enumerate(estilos)
+    ]
+    return alt.Scale(domain=estilos, range=colores)
+
+
+def escala_presentacion() -> alt.Scale:
+    return alt.Scale(
+        domain=list(COLORES_PRESENTACION.keys()),
+        range=list(COLORES_PRESENTACION.values()),
+    )
+
+
+def estilizar_grafico(grafico: alt.TopLevelMixin) -> alt.TopLevelMixin:
+    return (
+        grafico.configure_view(strokeOpacity=0)
+        .configure_axis(
+            labelColor="#43565B",
+            titleColor="#263B40",
+            gridColor="#DFE9E5",
+            gridOpacity=.65,
+            labelFontSize=11,
+            titleFontSize=12,
+        )
+        .configure_legend(
+            labelColor="#43565B",
+            titleColor="#263B40",
+            orient="bottom",
+            direction="horizontal",
+        )
+        .configure_title(
+            color="#173F33",
+            fontSize=17,
+            fontWeight=700,
+            anchor="start",
+            offset=14,
+        )
+    )
+
+
+def mostrar_grafico(grafico: alt.TopLevelMixin | None) -> None:
+    if grafico is None:
+        st.info("No hay datos suficientes para generar este gr\u00e1fico.")
+        return
+    st.altair_chart(estilizar_grafico(grafico), use_container_width=True)
 
 
 def mostrar_metricas(
@@ -453,65 +719,139 @@ def mostrar_metricas(
     latas: float,
     litros_barriles: float,
     litros_latas: float,
+    movimientos: float | None = None,
 ) -> None:
     litros_totales = litros_barriles + litros_latas
-    columnas = st.columns(5)
-    columnas[0].metric("Barriles", formato_numero(barriles, 0))
-    columnas[1].metric("Latas", formato_numero(latas, 0))
-    columnas[2].metric("Litros en barriles", f"{formato_numero(litros_barriles, 1)} L")
-    columnas[3].metric("Litros en latas", f"{formato_numero(litros_latas, 2)} L")
-    columnas[4].metric("Litros totales", f"{formato_numero(litros_totales, 2)} L")
+    columnas = st.columns(6 if movimientos is not None else 5)
+    columnas[0].metric("\U0001F6E2\uFE0F Barriles", formato_numero(barriles, 0))
+    columnas[1].metric("\U0001F96B Latas", formato_numero(latas, 0))
+    columnas[2].metric("\U0001F37A Litros en barriles", f"{formato_numero(litros_barriles, 1)} L")
+    columnas[3].metric("\U0001F4A7 Litros en latas", f"{formato_numero(litros_latas, 2)} L")
+    columnas[4].metric("\U0001F4E6 Litros totales", f"{formato_numero(litros_totales, 2)} L")
+    if movimientos is not None:
+        columnas[5].metric("\U0001F9FE Movimientos", formato_numero(movimientos, 0))
+
+
+def crear_grafico_dona(
+    df: pd.DataFrame,
+    categoria: str,
+    valor: str,
+    titulo: str,
+    modo_color: str = "estilo",
+    sufijo: str = " L",
+) -> alt.TopLevelMixin | None:
+    if df.empty:
+        return None
+
+    agrupado = (
+        df.groupby(categoria, as_index=False)[valor]
+        .sum()
+        .sort_values(valor, ascending=False)
+    )
+    agrupado = agrupado[agrupado[valor].gt(0)].copy()
+    if agrupado.empty:
+        return None
+
+    total = float(agrupado[valor].sum())
+    agrupado["Participacion"] = agrupado[valor] / total if total else 0
+
+    if modo_color == "presentacion":
+        escala = escala_presentacion()
+    else:
+        escala = escala_estilos(agrupado[categoria].tolist())
+
+    arcos = (
+        alt.Chart(agrupado)
+        .mark_arc(innerRadius=70, outerRadius=118, stroke="white", strokeWidth=2)
+        .encode(
+            theta=alt.Theta(f"{valor}:Q", stack=True),
+            color=alt.Color(
+                f"{categoria}:N",
+                scale=escala,
+                title=categoria,
+                sort=agrupado[categoria].tolist(),
+            ),
+            tooltip=[
+                alt.Tooltip(f"{categoria}:N", title=categoria),
+                alt.Tooltip(f"{valor}:Q", title=valor, format=",.2f"),
+                alt.Tooltip("Participacion:Q", title="Participaci\u00f3n", format=".1%"),
+            ],
+        )
+    )
+    centro = (
+        alt.Chart(pd.DataFrame({"Texto": [f"{formato_numero(total, 1)}{sufijo}"]}))
+        .mark_text(fontSize=21, fontWeight="bold", color="#173F33")
+        .encode(text="Texto:N")
+    )
+    return (arcos + centro).properties(title=titulo, height=335)
 
 
 def grafico_litros_por_categoria(
     df: pd.DataFrame,
     categoria: str,
     titulo: str,
-) -> None:
+    top_n: int | None = None,
+) -> alt.TopLevelMixin | None:
     if df.empty:
-        st.info("No hay datos para generar el grafico.")
-        return
+        return None
+
+    datos = df.copy()
+    if top_n:
+        principales = datos.groupby(categoria)["Litros_totales"].sum().nlargest(top_n).index
+        datos = datos[datos[categoria].isin(principales)]
 
     agrupado = (
-        df.groupby([categoria, "Tipo"], as_index=False)["Litros_totales"]
+        datos.groupby([categoria, "Tipo"], as_index=False)["Litros_totales"]
         .sum()
         .rename(columns={"Litros_totales": "Litros"})
     )
+    if agrupado.empty:
+        return None
 
-    grafico = (
+    return (
         alt.Chart(agrupado)
-        .mark_bar()
+        .mark_bar(cornerRadiusEnd=5)
         .encode(
-            y=alt.Y(f"{categoria}:N", sort="-x", title=categoria),
+            y=alt.Y(f"{categoria}:N", sort="-x", title=None),
             x=alt.X("Litros:Q", title="Litros"),
-            color=alt.Color("Tipo:N", title="Presentación"),
-            tooltip=[categoria, "Tipo", alt.Tooltip("Litros:Q", format=",.2f")],
+            color=alt.Color("Tipo:N", title="Presentaci\u00f3n", scale=escala_presentacion()),
+            order=alt.Order("Tipo:N", sort="ascending"),
+            tooltip=[
+                alt.Tooltip(f"{categoria}:N", title=categoria),
+                alt.Tooltip("Tipo:N", title="Presentaci\u00f3n"),
+                alt.Tooltip("Litros:Q", title="Litros", format=",.2f"),
+            ],
         )
-        .properties(title=titulo, height=max(320, len(agrupado[categoria].unique()) * 24))
+        .properties(
+            title=titulo,
+            height=max(330, len(agrupado[categoria].unique()) * 28),
+        )
     )
-    st.altair_chart(grafico, use_container_width=True)
 
 
-def aplicar_filtros_despachos(df: pd.DataFrame) -> tuple[pd.DataFrame, date, date]:
+def aplicar_filtros_despachos(
+    df: pd.DataFrame,
+) -> tuple[pd.DataFrame, date, date, int]:
     if df.empty:
         hoy = hoy_bogota()
-        return df, hoy, hoy
+        return df, hoy, hoy, 10
 
     minimo = df["Fecha"].min().date()
     maximo = df["Fecha"].max().date()
     hoy = hoy_bogota()
 
     st.sidebar.markdown("---")
-    st.sidebar.subheader("Filtros de despachos")
+    st.sidebar.subheader("\U0001F50E Filtros de despachos")
     periodo = st.sidebar.selectbox(
         "Periodo",
-        ["Mes actual", "Año actual", "Todo el historial", "Rango personalizado"],
+        ["Mes actual", "A\u00f1o actual", "Todo el historial", "Rango personalizado"],
+        key="periodo_despachos",
     )
 
     if periodo == "Mes actual":
         fecha_inicio = date(hoy.year, hoy.month, 1)
         fecha_fin = hoy
-    elif periodo == "Año actual":
+    elif periodo == "A\u00f1o actual":
         fecha_inicio = date(hoy.year, 1, 1)
         fecha_fin = hoy
     elif periodo == "Todo el historial":
@@ -523,12 +863,14 @@ def aplicar_filtros_despachos(df: pd.DataFrame) -> tuple[pd.DataFrame, date, dat
             value=max(minimo, date(hoy.year, hoy.month, 1)),
             min_value=minimo,
             max_value=maximo,
+            key="fecha_inicio_despachos",
         )
         fecha_fin = st.sidebar.date_input(
             "Fecha final",
             value=min(hoy, maximo),
             min_value=minimo,
             max_value=maximo,
+            key="fecha_fin_despachos",
         )
 
     if fecha_inicio > fecha_fin:
@@ -537,43 +879,49 @@ def aplicar_filtros_despachos(df: pd.DataFrame) -> tuple[pd.DataFrame, date, dat
     clientes = sorted(df["Cliente"].dropna().astype(str).unique().tolist())
     estilos = sorted(df["Estilo"].dropna().astype(str).unique().tolist())
 
-    cliente = st.sidebar.selectbox("Cliente", ["Todos"] + clientes)
-    estilo = st.sidebar.selectbox("Estilo", ["Todos"] + estilos)
-    presentacion = st.sidebar.selectbox("Presentación", ["Todas", "Barril", "Lata"])
+    clientes_seleccionados = st.sidebar.multiselect(
+        "Clientes (vac\u00edo = todos)",
+        clientes,
+        key="clientes_despachos",
+    )
+    estilos_seleccionados = st.sidebar.multiselect(
+        "Estilos (vac\u00edo = todos)",
+        estilos,
+        key="estilos_despachos",
+    )
+    presentacion = st.sidebar.selectbox(
+        "Presentaci\u00f3n",
+        ["Todas", "Barril", "Lata"],
+        key="presentacion_despachos",
+    )
+    top_n = st.sidebar.slider(
+        "Elementos en rankings",
+        min_value=5,
+        max_value=25,
+        value=10,
+        step=1,
+        key="top_n_despachos",
+    )
 
-    filtrado = df[
-        df["Fecha"].dt.date.between(fecha_inicio, fecha_fin, inclusive="both")
-    ].copy()
-
-    if cliente != "Todos":
-        filtrado = filtrado[filtrado["Cliente"].eq(cliente)]
-    if estilo != "Todos":
-        filtrado = filtrado[filtrado["Estilo"].eq(estilo)]
+    filtrado = df[df["Fecha"].dt.date.between(fecha_inicio, fecha_fin, inclusive="both")].copy()
+    if clientes_seleccionados:
+        filtrado = filtrado[filtrado["Cliente"].isin(clientes_seleccionados)]
+    if estilos_seleccionados:
+        filtrado = filtrado[filtrado["Estilo"].isin(estilos_seleccionados)]
     if presentacion != "Todas":
         filtrado = filtrado[filtrado["Tipo"].eq(presentacion)]
 
-    return filtrado, fecha_inicio, fecha_fin
+    return filtrado, fecha_inicio, fecha_fin, top_n
 
 
 # -----------------------------------------------------------------------------
-# VISTA: INVENTARIO ACTUAL
+# GRAFICOS Y VISTA DE INVENTARIO
 # -----------------------------------------------------------------------------
-def mostrar_inventario_actual(
+def construir_resumen_inventario(
     inventario_barriles: pd.DataFrame,
     inventario_latas: pd.DataFrame,
-) -> None:
-    st.subheader("Inventario actual en cuarto frío")
-    st.caption(
-        "Barriles: último estado registrado por código. Latas: saldo de InventarioLatasTR. "
-        f"Cada lata equivale a {LITROS_POR_LATA:.3f} L."
-    )
-
-    total_barriles = float(len(inventario_barriles))
-    total_latas = float(inventario_latas["Disponible"].sum()) if not inventario_latas.empty else 0.0
-    litros_barriles = float(inventario_barriles["Litros"].sum()) if not inventario_barriles.empty else 0.0
-    litros_latas = float(inventario_latas["Litros"].sum()) if not inventario_latas.empty else 0.0
-    mostrar_metricas(total_barriles, total_latas, litros_barriles, litros_latas)
-
+    umbral_alerta: float,
+) -> pd.DataFrame:
     if inventario_barriles.empty:
         resumen_barriles = pd.DataFrame(columns=["Estilo", "Barriles", "Litros barriles"])
     else:
@@ -591,43 +939,265 @@ def mostrar_inventario_actual(
         )
 
     resumen = pd.merge(resumen_barriles, resumen_latas, on="Estilo", how="outer").fillna(0)
-    if not resumen.empty:
-        resumen["Litros totales"] = resumen["Litros barriles"] + resumen["Litros latas"]
-        resumen = normalizar_tipos_resumen(resumen)
-        resumen = resumen.sort_values("Litros totales", ascending=False)
+    if resumen.empty:
+        return resumen
 
-        st.markdown("#### Resumen por estilo")
-        st.dataframe(resumen, use_container_width=True, hide_index=True)
+    resumen["Litros totales"] = resumen["Litros barriles"] + resumen["Litros latas"]
+    resumen["Estado inventario"] = resumen["Litros totales"].apply(
+        lambda valor: "\u26A0\uFE0F Bajo" if valor < umbral_alerta else "\u2705 Adecuado"
+    )
+    resumen = normalizar_tipos_resumen(resumen)
+    return resumen.sort_values("Litros totales", ascending=False)
 
-        grafico = resumen.melt(
-            id_vars="Estilo",
-            value_vars=["Litros barriles", "Litros latas"],
-            var_name="Presentación",
-            value_name="Litros",
+
+def grafico_inventario_apilado(resumen: pd.DataFrame) -> alt.TopLevelMixin | None:
+    if resumen.empty:
+        return None
+    datos = resumen.melt(
+        id_vars="Estilo",
+        value_vars=["Litros barriles", "Litros latas"],
+        var_name="Presentacion",
+        value_name="Litros",
+    )
+    datos["Presentacion"] = datos["Presentacion"].replace(
+        {"Litros barriles": "Barril", "Litros latas": "Lata"}
+    )
+    return (
+        alt.Chart(datos)
+        .mark_bar(cornerRadiusEnd=5)
+        .encode(
+            y=alt.Y("Estilo:N", sort="-x", title=None),
+            x=alt.X("Litros:Q", title="Litros disponibles"),
+            color=alt.Color("Presentacion:N", title="Presentaci\u00f3n", scale=escala_presentacion()),
+            tooltip=["Estilo", "Presentacion", alt.Tooltip("Litros:Q", format=",.2f")],
         )
-        grafico["Presentación"] = grafico["Presentación"].replace(
-            {"Litros barriles": "Barril", "Litros latas": "Lata"}
+        .properties(
+            title="Litros disponibles por estilo y presentaci\u00f3n",
+            height=max(340, len(resumen) * 29),
         )
-        grafico_altair = (
-            alt.Chart(grafico)
-            .mark_bar()
-            .encode(
-                y=alt.Y("Estilo:N", sort="-x"),
-                x=alt.X("Litros:Q", title="Litros disponibles"),
-                color=alt.Color("Presentación:N", title="Presentación"),
-                tooltip=["Estilo", "Presentación", alt.Tooltip("Litros:Q", format=",.2f")],
-            )
-            .properties(height=max(320, len(resumen) * 28))
+    )
+
+
+def grafico_estado_inventario(
+    resumen: pd.DataFrame,
+    umbral: float,
+) -> alt.TopLevelMixin | None:
+    if resumen.empty:
+        return None
+
+    datos = resumen.copy()
+    datos["Nivel"] = datos["Litros totales"].apply(
+        lambda valor: "Bajo" if valor < umbral else "Adecuado"
+    )
+    barras = (
+        alt.Chart(datos)
+        .mark_bar(cornerRadiusEnd=5)
+        .encode(
+            y=alt.Y("Estilo:N", sort="-x", title=None),
+            x=alt.X("Litros totales:Q", title="Litros totales"),
+            color=alt.Color(
+                "Nivel:N",
+                scale=alt.Scale(domain=["Bajo", "Adecuado"], range=[COLOR_ALERTA, COLOR_OK]),
+                title="Nivel",
+            ),
+            tooltip=["Estilo", "Nivel", alt.Tooltip("Litros totales:Q", format=",.2f")],
         )
-        st.altair_chart(grafico_altair, use_container_width=True)
-    else:
+    )
+    regla = (
+        alt.Chart(pd.DataFrame({"Umbral": [umbral]}))
+        .mark_rule(color=COLOR_ALERTA, strokeDash=[5, 4], strokeWidth=2)
+        .encode(x="Umbral:Q")
+    )
+    return (barras + regla).properties(
+        title=f"Sem\u00e1foro de inventario · alerta por debajo de {formato_numero(umbral, 0)} L",
+        height=max(340, len(resumen) * 29),
+    )
+
+
+def grafico_mezcla_inventario(resumen: pd.DataFrame) -> alt.TopLevelMixin | None:
+    if resumen.empty:
+        return None
+    return (
+        alt.Chart(resumen)
+        .mark_circle(opacity=.86, stroke="white", strokeWidth=1.5)
+        .encode(
+            x=alt.X("Litros barriles:Q", title="Litros en barriles"),
+            y=alt.Y("Litros latas:Q", title="Litros en latas"),
+            size=alt.Size("Litros totales:Q", title="Litros totales", scale=alt.Scale(range=[120, 1800])),
+            color=alt.Color("Estilo:N", scale=escala_estilos(resumen["Estilo"].tolist()), title="Estilo"),
+            tooltip=[
+                "Estilo",
+                alt.Tooltip("Barriles:Q", format=",.0f"),
+                alt.Tooltip("Latas:Q", format=",.0f"),
+                alt.Tooltip("Litros barriles:Q", format=",.2f"),
+                alt.Tooltip("Litros latas:Q", format=",.2f"),
+                alt.Tooltip("Litros totales:Q", format=",.2f"),
+            ],
+        )
+        .properties(title="Mezcla de inventario: barriles vs. latas", height=390)
+    )
+
+
+def grafico_lotes_latas(
+    inventario_latas: pd.DataFrame,
+    top_n: int = 25,
+) -> alt.TopLevelMixin | None:
+    if inventario_latas.empty:
+        return None
+    datos = inventario_latas.copy()
+    datos["Etiqueta"] = datos["Estilo"] + " · " + datos["Lote"].replace("", "Sin lote")
+    datos = datos.nlargest(top_n, "Litros")
+    return (
+        alt.Chart(datos)
+        .mark_bar(cornerRadiusEnd=5)
+        .encode(
+            y=alt.Y("Etiqueta:N", sort="-x", title=None),
+            x=alt.X("Disponible:Q", title="Latas disponibles"),
+            color=alt.Color("Estilo:N", scale=escala_estilos(datos["Estilo"].tolist()), title="Estilo"),
+            tooltip=[
+                "Estilo",
+                "Lote",
+                alt.Tooltip("Disponible:Q", format=",.0f"),
+                alt.Tooltip("Litros:Q", format=",.2f"),
+            ],
+        )
+        .properties(
+            title=f"Lotes de latas con mayor disponibilidad · Top {top_n}",
+            height=max(380, len(datos) * 25),
+        )
+    )
+
+
+def grafico_capacidad_barriles(
+    inventario_barriles: pd.DataFrame,
+) -> alt.TopLevelMixin | None:
+    if inventario_barriles.empty:
+        return None
+    datos = inventario_barriles.copy()
+    datos["Capacidad nominal"] = capacidad_nominal_por_codigo(datos["Codigo"])
+    datos["Capacidad"] = datos["Capacidad nominal"].apply(
+        lambda valor: f"{int(valor)} L" if valor > 0 else "Otra"
+    )
+    agrupado = (
+        datos.groupby(["Estilo", "Capacidad"], as_index=False)
+        .agg(Barriles=("Codigo", "count"))
+    )
+    return (
+        alt.Chart(agrupado)
+        .mark_bar(cornerRadiusEnd=4)
+        .encode(
+            x=alt.X("Estilo:N", sort="-y", title=None),
+            y=alt.Y("Barriles:Q", title="N\u00famero de barriles"),
+            color=alt.Color("Capacidad:N", title="Capacidad nominal"),
+            tooltip=["Estilo", "Capacidad", "Barriles"],
+        )
+        .properties(title="Barriles por estilo y capacidad nominal", height=390)
+    )
+
+
+def mostrar_inventario_actual(
+    inventario_barriles: pd.DataFrame,
+    inventario_latas: pd.DataFrame,
+    umbral_alerta: float,
+) -> None:
+    st.subheader("\U0001F4E6 Inventario actual en cuarto fr\u00edo")
+    st.markdown(
+        f"""
+        <div class="section-note">
+        El inventario combina el \u00faltimo estado de cada barril con el saldo autom\u00e1tico de
+        <b>InventarioLatasTR</b>. Cada lata equivale a <b>{LITROS_POR_LATA:.3f} litros</b>.
+        El sem\u00e1foro considera inventario bajo cuando un estilo tiene menos de
+        <b>{formato_numero(umbral_alerta, 0)} litros</b> combinados.
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    total_barriles = float(len(inventario_barriles))
+    total_latas = float(inventario_latas["Disponible"].sum()) if not inventario_latas.empty else 0.0
+    litros_barriles = float(inventario_barriles["Litros"].sum()) if not inventario_barriles.empty else 0.0
+    litros_latas = float(inventario_latas["Litros"].sum()) if not inventario_latas.empty else 0.0
+    mostrar_metricas(total_barriles, total_latas, litros_barriles, litros_latas)
+
+    resumen = construir_resumen_inventario(inventario_barriles, inventario_latas, umbral_alerta)
+    if resumen.empty:
         st.warning("No se encontraron existencias actuales.")
+        return
 
-    columna_barriles, columna_latas = st.columns(2)
-    with columna_barriles:
-        with st.expander("Detalle de barriles en cuarto frío", expanded=False):
+    estilos_bajos = int(resumen["Estado inventario"].str.contains("Bajo").sum())
+    col_a, col_b, col_c = st.columns(3)
+    col_a.metric("\U0001F3A8 Estilos con inventario", formato_numero(len(resumen), 0))
+    col_b.metric("\u26A0\uFE0F Estilos bajo el umbral", formato_numero(estilos_bajos, 0))
+    col_c.metric(
+        "\U0001F4CA Promedio por estilo",
+        f"{formato_numero(resumen['Litros totales'].mean(), 2)} L",
+    )
+
+    tab_resumen, tab_visual, tab_alertas, tab_detalle = st.tabs(
+        ["Resumen", "An\u00e1lisis visual", "Alertas y lotes", "Detalle"]
+    )
+
+    with tab_resumen:
+        st.dataframe(resumen, use_container_width=True, hide_index=True)
+        mostrar_grafico(grafico_inventario_apilado(resumen))
+
+        presentaciones = pd.DataFrame(
+            {
+                "Tipo": ["Barril", "Lata"],
+                "Litros": [litros_barriles, litros_latas],
+            }
+        )
+        col_1, col_2 = st.columns(2)
+        with col_1:
+            mostrar_grafico(
+                crear_grafico_dona(
+                    resumen,
+                    categoria="Estilo",
+                    valor="Litros totales",
+                    titulo="Distribuci\u00f3n del inventario por estilo",
+                )
+            )
+        with col_2:
+            mostrar_grafico(
+                crear_grafico_dona(
+                    presentaciones,
+                    categoria="Tipo",
+                    valor="Litros",
+                    titulo="Inventario por presentaci\u00f3n",
+                    modo_color="presentacion",
+                )
+            )
+
+    with tab_visual:
+        col_1, col_2 = st.columns(2)
+        with col_1:
+            mostrar_grafico(grafico_mezcla_inventario(resumen))
+        with col_2:
+            mostrar_grafico(grafico_capacidad_barriles(inventario_barriles))
+
+    with tab_alertas:
+        bajos = resumen[resumen["Estado inventario"].str.contains("Bajo")].copy()
+        if bajos.empty:
+            st.success("Todos los estilos se encuentran por encima del umbral configurado.")
+        else:
+            st.warning(
+                "Estilos con inventario bajo: "
+                + ", ".join(bajos["Estilo"].astype(str).tolist())
+            )
+            st.dataframe(
+                bajos[["Estilo", "Barriles", "Latas", "Litros totales", "Estado inventario"]],
+                use_container_width=True,
+                hide_index=True,
+            )
+        mostrar_grafico(grafico_estado_inventario(resumen, umbral_alerta))
+        mostrar_grafico(grafico_lotes_latas(inventario_latas))
+
+    with tab_detalle:
+        columna_barriles, columna_latas = st.columns(2)
+        with columna_barriles:
+            st.markdown("#### Barriles en cuarto fr\u00edo")
             if inventario_barriles.empty:
-                st.info("No hay barriles registrados en cuarto frío.")
+                st.info("No hay barriles registrados en cuarto fr\u00edo.")
             else:
                 detalle = inventario_barriles[
                     ["Codigo", "Estilo", "Lote", "Litros", "Fecha", "Observaciones"]
@@ -640,13 +1210,22 @@ def mostrar_inventario_actual(
                     hide_index=True,
                 )
 
-    with columna_latas:
-        with st.expander("Detalle de latas disponibles", expanded=False):
+        with columna_latas:
+            st.markdown("#### Latas disponibles")
             if inventario_latas.empty:
                 st.info("No hay latas disponibles.")
             else:
                 detalle = inventario_latas[
-                    ["Estilo", "Lote", "Ingresadas", "Despachadas", "Devoluciones", "Bajas", "Disponible", "Litros"]
+                    [
+                        "Estilo",
+                        "Lote",
+                        "Ingresadas",
+                        "Despachadas",
+                        "Devoluciones",
+                        "Bajas",
+                        "Disponible",
+                        "Litros",
+                    ]
                 ].copy()
                 for columna in ["Ingresadas", "Despachadas", "Devoluciones", "Bajas", "Disponible"]:
                     detalle[columna] = detalle[columna].round().astype(int)
@@ -659,16 +1238,323 @@ def mostrar_inventario_actual(
 
 
 # -----------------------------------------------------------------------------
-# VISTA: DESPACHOS
+# GRAFICOS Y VISTA DE DESPACHOS
 # -----------------------------------------------------------------------------
-def mostrar_despachos(df_despachos: pd.DataFrame) -> None:
-    st.subheader("Reporte de despachos de barriles y latas")
-    st.caption(
-        "Se cuentan movimientos con estado Despacho. En VLatas, los registros historicos "
-        "sin estado tambien se consideran despachos."
+def grafico_pareto_clientes(
+    df: pd.DataFrame,
+    top_n: int,
+) -> alt.TopLevelMixin | None:
+    if df.empty:
+        return None
+    datos = (
+        df.groupby("Cliente", as_index=False)["Litros_totales"]
+        .sum()
+        .rename(columns={"Litros_totales": "Litros"})
+        .nlargest(top_n, "Litros")
+        .sort_values("Litros", ascending=False)
+    )
+    if datos.empty:
+        return None
+    total = float(datos["Litros"].sum())
+    datos["Acumulado"] = datos["Litros"].cumsum() / total if total else 0
+    orden = datos["Cliente"].tolist()
+
+    barras = (
+        alt.Chart(datos)
+        .mark_bar(color=COLOR_PRIMARIO, cornerRadiusTopLeft=4, cornerRadiusTopRight=4)
+        .encode(
+            x=alt.X("Cliente:N", sort=orden, axis=alt.Axis(labelAngle=-35), title=None),
+            y=alt.Y("Litros:Q", title="Litros"),
+            tooltip=["Cliente", alt.Tooltip("Litros:Q", format=",.2f")],
+        )
+    )
+    linea = (
+        alt.Chart(datos)
+        .mark_line(point=True, color=COLOR_DORADO, strokeWidth=3)
+        .encode(
+            x=alt.X("Cliente:N", sort=orden),
+            y=alt.Y(
+                "Acumulado:Q",
+                axis=alt.Axis(title="Participaci\u00f3n acumulada", format="%", orient="right"),
+                scale=alt.Scale(domain=[0, 1]),
+            ),
+            tooltip=["Cliente", alt.Tooltip("Acumulado:Q", format=".1%")],
+        )
+    )
+    return (barras + linea).resolve_scale(y="independent").properties(
+        title=f"Pareto de clientes · Top {top_n}",
+        height=390,
     )
 
-    filtrado, fecha_inicio, fecha_fin = aplicar_filtros_despachos(df_despachos)
+
+def grafico_mapa_cliente_estilo(
+    df: pd.DataFrame,
+    top_n: int,
+) -> alt.TopLevelMixin | None:
+    if df.empty:
+        return None
+    clientes = df.groupby("Cliente")["Litros_totales"].sum().nlargest(top_n).index.tolist()
+    estilos = df.groupby("Estilo")["Litros_totales"].sum().nlargest(min(top_n, 10)).index.tolist()
+    datos = (
+        df[df["Cliente"].isin(clientes) & df["Estilo"].isin(estilos)]
+        .groupby(["Cliente", "Estilo"], as_index=False)["Litros_totales"]
+        .sum()
+        .rename(columns={"Litros_totales": "Litros"})
+    )
+    if datos.empty:
+        return None
+    return (
+        alt.Chart(datos)
+        .mark_rect(cornerRadius=2)
+        .encode(
+            x=alt.X("Estilo:N", sort=estilos, title="Estilo"),
+            y=alt.Y("Cliente:N", sort=clientes, title="Cliente"),
+            color=alt.Color("Litros:Q", scale=alt.Scale(scheme="yellowgreenblue"), title="Litros"),
+            tooltip=["Cliente", "Estilo", alt.Tooltip("Litros:Q", format=",.2f")],
+        )
+        .properties(title="Mapa de calor: clientes y estilos", height=max(360, len(clientes) * 31))
+    )
+
+
+def grafico_mensual_presentacion(df: pd.DataFrame) -> alt.TopLevelMixin | None:
+    if df.empty:
+        return None
+    datos = df.copy()
+    datos["Mes"] = datos["Fecha"].dt.to_period("M").dt.to_timestamp()
+    datos = (
+        datos.groupby(["Mes", "Tipo"], as_index=False)["Litros_totales"]
+        .sum()
+        .rename(columns={"Litros_totales": "Litros"})
+    )
+    return (
+        alt.Chart(datos)
+        .mark_bar(cornerRadiusTopLeft=4, cornerRadiusTopRight=4)
+        .encode(
+            x=alt.X("yearmonth(Mes):T", title="Mes"),
+            y=alt.Y("Litros:Q", title="Litros despachados"),
+            color=alt.Color("Tipo:N", scale=escala_presentacion(), title="Presentaci\u00f3n"),
+            tooltip=[
+                alt.Tooltip("yearmonth(Mes):T", title="Mes", format="%b %Y"),
+                "Tipo",
+                alt.Tooltip("Litros:Q", format=",.2f"),
+            ],
+        )
+        .properties(title="Comparaci\u00f3n mensual de despachos", height=390)
+    )
+
+
+def grafico_area_estilos(
+    df: pd.DataFrame,
+    top_n: int,
+) -> alt.TopLevelMixin | None:
+    if df.empty:
+        return None
+    principales = df.groupby("Estilo")["Litros_totales"].sum().nlargest(top_n).index
+    datos = df[df["Estilo"].isin(principales)].copy()
+    datos["Dia"] = datos["Fecha"].dt.floor("D")
+    datos = (
+        datos.groupby(["Dia", "Estilo"], as_index=False)["Litros_totales"]
+        .sum()
+        .rename(columns={"Litros_totales": "Litros"})
+    )
+    return (
+        alt.Chart(datos)
+        .mark_area(opacity=.78, interpolate="monotone")
+        .encode(
+            x=alt.X("Dia:T", title="Fecha"),
+            y=alt.Y("Litros:Q", stack="zero", title="Litros"),
+            color=alt.Color("Estilo:N", scale=escala_estilos(datos["Estilo"].tolist()), title="Estilo"),
+            tooltip=[
+                alt.Tooltip("Dia:T", format="%d/%m/%Y", title="Fecha"),
+                "Estilo",
+                alt.Tooltip("Litros:Q", format=",.2f"),
+            ],
+        )
+        .properties(title=f"Evoluci\u00f3n diaria por estilo · Top {top_n}", height=400)
+    )
+
+
+def grafico_tendencia_presentacion(df: pd.DataFrame) -> alt.TopLevelMixin | None:
+    if df.empty:
+        return None
+    datos = df.copy()
+    datos["Dia"] = datos["Fecha"].dt.floor("D")
+    datos = (
+        datos.groupby(["Dia", "Tipo"], as_index=False)["Litros_totales"]
+        .sum()
+        .rename(columns={"Litros_totales": "Litros"})
+    )
+    return (
+        alt.Chart(datos)
+        .mark_line(point=True, strokeWidth=3)
+        .encode(
+            x=alt.X("Dia:T", title="Fecha"),
+            y=alt.Y("Litros:Q", title="Litros despachados"),
+            color=alt.Color("Tipo:N", scale=escala_presentacion(), title="Presentaci\u00f3n"),
+            tooltip=[
+                alt.Tooltip("Dia:T", format="%d/%m/%Y", title="Fecha"),
+                "Tipo",
+                alt.Tooltip("Litros:Q", format=",.2f"),
+            ],
+        )
+        .properties(title="Tendencia diaria por presentaci\u00f3n", height=360)
+    )
+
+
+def grafico_media_movil(df: pd.DataFrame) -> alt.TopLevelMixin | None:
+    if df.empty:
+        return None
+    datos = df.copy()
+    datos["Dia"] = datos["Fecha"].dt.floor("D")
+    diario = (
+        datos.groupby("Dia", as_index=False)["Litros_totales"]
+        .sum()
+        .sort_values("Dia")
+        .rename(columns={"Litros_totales": "Litros diarios"})
+    )
+    diario["Promedio 7 dias"] = diario["Litros diarios"].rolling(7, min_periods=1).mean()
+    largo = diario.melt(
+        id_vars="Dia",
+        value_vars=["Litros diarios", "Promedio 7 dias"],
+        var_name="Serie",
+        value_name="Litros",
+    )
+    return (
+        alt.Chart(largo)
+        .mark_line(point=True, strokeWidth=3)
+        .encode(
+            x=alt.X("Dia:T", title="Fecha"),
+            y=alt.Y("Litros:Q", title="Litros"),
+            color=alt.Color(
+                "Serie:N",
+                scale=alt.Scale(
+                    domain=["Litros diarios", "Promedio 7 dias"],
+                    range=["#B7C9C1", COLOR_PRIMARIO],
+                ),
+                title="Serie",
+            ),
+            tooltip=[
+                alt.Tooltip("Dia:T", format="%d/%m/%Y", title="Fecha"),
+                "Serie",
+                alt.Tooltip("Litros:Q", format=",.2f"),
+            ],
+        )
+        .properties(title="Litros diarios y promedio m\u00f3vil de 7 d\u00edas", height=360)
+    )
+
+
+def grafico_dia_semana(df: pd.DataFrame) -> alt.TopLevelMixin | None:
+    if df.empty:
+        return None
+    datos = df.copy()
+    datos["Orden"] = datos["Fecha"].dt.dayofweek
+    datos["Dia semana"] = datos["Orden"].map(dict(enumerate(ORDEN_DIAS)))
+    datos = (
+        datos.groupby(["Orden", "Dia semana"], as_index=False)["Litros_totales"]
+        .sum()
+        .sort_values("Orden")
+        .rename(columns={"Litros_totales": "Litros"})
+    )
+    return (
+        alt.Chart(datos)
+        .mark_bar(color=COLOR_PRIMARIO, cornerRadiusTopLeft=6, cornerRadiusTopRight=6)
+        .encode(
+            x=alt.X("Dia semana:N", sort=ORDEN_DIAS, title=None),
+            y=alt.Y("Litros:Q", title="Litros despachados"),
+            tooltip=["Dia semana", alt.Tooltip("Litros:Q", format=",.2f")],
+        )
+        .properties(title="Despachos por d\u00eda de la semana", height=340)
+    )
+
+
+def grafico_mapa_horario(df: pd.DataFrame) -> alt.TopLevelMixin | None:
+    if df.empty:
+        return None
+    datos = df.copy()
+    datos["Orden"] = datos["Fecha"].dt.dayofweek
+    datos["Dia semana"] = datos["Orden"].map(dict(enumerate(ORDEN_DIAS)))
+    datos["Hora"] = datos["Fecha"].dt.hour
+    datos = (
+        datos.groupby(["Orden", "Dia semana", "Hora"], as_index=False)["Litros_totales"]
+        .sum()
+        .rename(columns={"Litros_totales": "Litros"})
+    )
+    return (
+        alt.Chart(datos)
+        .mark_rect(cornerRadius=2)
+        .encode(
+            x=alt.X("Hora:O", title="Hora del d\u00eda"),
+            y=alt.Y("Dia semana:N", sort=ORDEN_DIAS, title=None),
+            color=alt.Color("Litros:Q", scale=alt.Scale(scheme="yellowgreenblue"), title="Litros"),
+            tooltip=["Dia semana", "Hora", alt.Tooltip("Litros:Q", format=",.2f")],
+        )
+        .properties(title="Mapa de calor de actividad por d\u00eda y hora", height=340)
+    )
+
+
+def graficos_unidades_por_estilo(
+    df: pd.DataFrame,
+    top_n: int,
+) -> tuple[alt.TopLevelMixin | None, alt.TopLevelMixin | None]:
+    barriles = (
+        df.groupby("Estilo", as_index=False)["Barriles"]
+        .sum()
+        .sort_values("Barriles", ascending=False)
+        .head(top_n)
+    )
+    barriles = barriles[barriles["Barriles"].gt(0)]
+    latas = (
+        df.groupby("Estilo", as_index=False)["Latas"]
+        .sum()
+        .sort_values("Latas", ascending=False)
+        .head(top_n)
+    )
+    latas = latas[latas["Latas"].gt(0)]
+
+    grafico_barriles = None
+    if not barriles.empty:
+        grafico_barriles = (
+            alt.Chart(barriles)
+            .mark_bar(cornerRadiusEnd=5)
+            .encode(
+                y=alt.Y("Estilo:N", sort="-x", title=None),
+                x=alt.X("Barriles:Q", title="Barriles despachados"),
+                color=alt.Color("Estilo:N", scale=escala_estilos(barriles["Estilo"].tolist()), legend=None),
+                tooltip=["Estilo", alt.Tooltip("Barriles:Q", format=",.0f")],
+            )
+            .properties(title="Barriles despachados por estilo", height=max(330, len(barriles) * 28))
+        )
+
+    grafico_latas = None
+    if not latas.empty:
+        grafico_latas = (
+            alt.Chart(latas)
+            .mark_bar(cornerRadiusEnd=5)
+            .encode(
+                y=alt.Y("Estilo:N", sort="-x", title=None),
+                x=alt.X("Latas:Q", title="Latas despachadas"),
+                color=alt.Color("Estilo:N", scale=escala_estilos(latas["Estilo"].tolist()), legend=None),
+                tooltip=["Estilo", alt.Tooltip("Latas:Q", format=",.0f")],
+            )
+            .properties(title="Latas despachadas por estilo", height=max(330, len(latas) * 28))
+        )
+
+    return grafico_barriles, grafico_latas
+
+
+def mostrar_despachos(df_despachos: pd.DataFrame) -> None:
+    st.subheader("\U0001F69A Reporte de despachos de barriles y latas")
+    st.markdown(
+        """
+        <div class="section-note">
+        Este m\u00f3dulo une los despachos de <b>DatosM</b> y <b>VLatas</b>. Los filtros de la
+        barra lateral afectan indicadores, tablas y todos los gr\u00e1ficos de esta secci\u00f3n.
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    filtrado, fecha_inicio, fecha_fin, top_n = aplicar_filtros_despachos(df_despachos)
     st.caption(
         f"Periodo mostrado: {fecha_inicio.strftime('%d/%m/%Y')} a "
         f"{fecha_fin.strftime('%d/%m/%Y')}"
@@ -682,7 +1568,18 @@ def mostrar_despachos(df_despachos: pd.DataFrame) -> None:
     total_latas = float(filtrado["Latas"].sum())
     litros_barriles = float(filtrado["Litros_barriles"].sum())
     litros_latas = float(filtrado["Litros_latas"].sum())
-    mostrar_metricas(total_barriles, total_latas, litros_barriles, litros_latas)
+    total_litros = litros_barriles + litros_latas
+    movimientos = float(len(filtrado))
+    mostrar_metricas(total_barriles, total_latas, litros_barriles, litros_latas, movimientos)
+
+    dias_periodo = max((fecha_fin - fecha_inicio).days + 1, 1)
+    promedio_diario = total_litros / dias_periodo
+    promedio_movimiento = total_litros / movimientos if movimientos else 0
+    col_1, col_2, col_3, col_4 = st.columns(4)
+    col_1.metric("\U0001F465 Clientes atendidos", formato_numero(filtrado["Cliente"].nunique(), 0))
+    col_2.metric("\U0001F3A8 Estilos despachados", formato_numero(filtrado["Estilo"].nunique(), 0))
+    col_3.metric("\U0001F4C5 Promedio diario", f"{formato_numero(promedio_diario, 2)} L")
+    col_4.metric("\U0001F9FE Promedio por movimiento", f"{formato_numero(promedio_movimiento, 2)} L")
 
     desconocidos = filtrado[
         filtrado["Tipo"].eq("Barril") & filtrado["Litros_totales"].le(0)
@@ -690,7 +1587,7 @@ def mostrar_despachos(df_despachos: pd.DataFrame) -> None:
     if not desconocidos.empty:
         st.warning(
             f"Hay {len(desconocidos)} despacho(s) de barril cuya capacidad no pudo determinarse. "
-            "Revisa que el codigo comience por 20, 30 o 58, o registra los litros en Capacidad/Observaciones."
+            "Revisa que el c\u00f3digo comience por 20, 30 o 58, o registra los litros en Capacidad/Observaciones."
         )
 
     resumen = (
@@ -698,6 +1595,7 @@ def mostrar_despachos(df_despachos: pd.DataFrame) -> None:
         .agg(
             Barriles=("Barriles", "sum"),
             Latas=("Latas", "sum"),
+            Movimientos=("Tipo", "size"),
             **{
                 "Litros barriles": ("Litros_barriles", "sum"),
                 "Litros latas": ("Litros_latas", "sum"),
@@ -708,57 +1606,97 @@ def mostrar_despachos(df_despachos: pd.DataFrame) -> None:
     )
     resumen = normalizar_tipos_resumen(resumen)
 
-    pestana_resumen, pestana_graficos, pestana_detalle = st.tabs(
-        ["Resumen", "Graficos", "Detalle de movimientos"]
+    tab_panorama, tab_clientes, tab_estilos, tab_tendencias, tab_detalle = st.tabs(
+        ["Panorama", "Clientes", "Estilos", "Tendencias", "Detalle"]
     )
 
-    with pestana_resumen:
+    with tab_panorama:
+        st.markdown("#### Resumen por cliente y estilo")
         st.dataframe(resumen, use_container_width=True, hide_index=True)
-        csv_resumen = resumen.to_csv(index=False).encode("utf-8-sig")
         st.download_button(
             "Descargar resumen CSV",
-            data=csv_resumen,
+            data=resumen.to_csv(index=False).encode("utf-8-sig"),
             file_name=f"resumen_despachos_{fecha_inicio}_{fecha_fin}.csv",
             mime="text/csv",
         )
 
-    with pestana_graficos:
-        grafico_litros_por_categoria(
-            filtrado,
-            categoria="Cliente",
-            titulo="Litros despachados por cliente",
-        )
-        grafico_litros_por_categoria(
-            filtrado,
-            categoria="Estilo",
-            titulo="Litros despachados por estilo",
-        )
-
-        tendencia = filtrado.copy()
-        tendencia["Dia"] = tendencia["Fecha"].dt.floor("D")
-        tendencia = (
-            tendencia.groupby(["Dia", "Tipo"], as_index=False)["Litros_totales"]
+        datos_presentacion = (
+            filtrado.groupby("Tipo", as_index=False)["Litros_totales"]
             .sum()
             .rename(columns={"Litros_totales": "Litros"})
         )
-        grafico_tendencia = (
-            alt.Chart(tendencia)
-            .mark_line(point=True)
-            .encode(
-                x=alt.X("Dia:T", title="Fecha"),
-                y=alt.Y("Litros:Q", title="Litros despachados"),
-                color=alt.Color("Tipo:N", title="Presentación"),
-                tooltip=[
-                    alt.Tooltip("Dia:T", title="Fecha", format="%d/%m/%Y"),
-                    "Tipo",
-                    alt.Tooltip("Litros:Q", format=",.2f"),
-                ],
-            )
-            .properties(title="Tendencia diaria de despachos", height=380)
+        datos_estilo = (
+            filtrado.groupby("Estilo", as_index=False)["Litros_totales"]
+            .sum()
+            .rename(columns={"Litros_totales": "Litros"})
         )
-        st.altair_chart(grafico_tendencia, use_container_width=True)
+        izquierda, derecha = st.columns(2)
+        with izquierda:
+            mostrar_grafico(
+                crear_grafico_dona(
+                    datos_presentacion,
+                    categoria="Tipo",
+                    valor="Litros",
+                    titulo="Distribuci\u00f3n por presentaci\u00f3n",
+                    modo_color="presentacion",
+                )
+            )
+        with derecha:
+            mostrar_grafico(
+                crear_grafico_dona(
+                    datos_estilo,
+                    categoria="Estilo",
+                    valor="Litros",
+                    titulo="Distribuci\u00f3n por estilo",
+                )
+            )
+        mostrar_grafico(grafico_mensual_presentacion(filtrado))
 
-    with pestana_detalle:
+    with tab_clientes:
+        mostrar_grafico(
+            grafico_litros_por_categoria(
+                filtrado,
+                categoria="Cliente",
+                titulo=f"Litros despachados por cliente · Top {top_n}",
+                top_n=top_n,
+            )
+        )
+        izquierda, derecha = st.columns([1.05, 1])
+        with izquierda:
+            mostrar_grafico(grafico_pareto_clientes(filtrado, top_n))
+        with derecha:
+            mostrar_grafico(grafico_mapa_cliente_estilo(filtrado, min(top_n, 12)))
+
+    with tab_estilos:
+        mostrar_grafico(
+            grafico_litros_por_categoria(
+                filtrado,
+                categoria="Estilo",
+                titulo=f"Litros despachados por estilo · Top {top_n}",
+                top_n=top_n,
+            )
+        )
+        grafico_barriles, grafico_latas = graficos_unidades_por_estilo(filtrado, top_n)
+        col_barriles, col_latas = st.columns(2)
+        with col_barriles:
+            mostrar_grafico(grafico_barriles)
+        with col_latas:
+            mostrar_grafico(grafico_latas)
+        mostrar_grafico(grafico_area_estilos(filtrado, top_n))
+
+    with tab_tendencias:
+        izquierda, derecha = st.columns(2)
+        with izquierda:
+            mostrar_grafico(grafico_tendencia_presentacion(filtrado))
+        with derecha:
+            mostrar_grafico(grafico_media_movil(filtrado))
+        izquierda, derecha = st.columns(2)
+        with izquierda:
+            mostrar_grafico(grafico_dia_semana(filtrado))
+        with derecha:
+            mostrar_grafico(grafico_mapa_horario(filtrado))
+
+    with tab_detalle:
         detalle = filtrado[
             [
                 "Fecha",
@@ -780,7 +1718,7 @@ def mostrar_despachos(df_despachos: pd.DataFrame) -> None:
         detalle["Fecha"] = detalle["Fecha"].dt.strftime("%d/%m/%Y %H:%M")
         detalle = detalle.rename(
             columns={
-                "Codigo": "Codigo barril",
+                "Codigo": "C\u00f3digo barril",
                 "Litros_barriles": "Litros barriles",
                 "Litros_latas": "Litros latas",
                 "Litros_totales": "Litros totales",
@@ -792,10 +1730,9 @@ def mostrar_despachos(df_despachos: pd.DataFrame) -> None:
             detalle[columna] = detalle[columna].round(2)
 
         st.dataframe(detalle, use_container_width=True, hide_index=True)
-        csv_detalle = detalle.to_csv(index=False).encode("utf-8-sig")
         st.download_button(
             "Descargar detalle CSV",
-            data=csv_detalle,
+            data=detalle.to_csv(index=False).encode("utf-8-sig"),
             file_name=f"detalle_despachos_{fecha_inicio}_{fecha_fin}.csv",
             mime="text/csv",
         )
@@ -807,19 +1744,24 @@ def mostrar_despachos(df_despachos: pd.DataFrame) -> None:
 def main() -> None:
     st.set_page_config(
         page_title="Reporte Barriles y Latas Castiza",
-        page_icon="🍺",
+        page_icon="\U0001F37A",
         layout="wide",
     )
+    aplicar_estilos_css()
+    mostrar_encabezado()
 
-    st.markdown(
-        "<h1 style='text-align:center; color:#20cb80;'>"
-        "🍺 REPORTE DE BARRILES Y LATAS - CASTIZA"
-        "</h1>",
-        unsafe_allow_html=True,
+    st.sidebar.markdown("## \U0001F37A CASTIZA")
+    st.sidebar.caption("Panel de reportes e inventario")
+    st.sidebar.subheader("Configuraci\u00f3n")
+    umbral_alerta = st.sidebar.number_input(
+        "Alerta de inventario por estilo (L)",
+        min_value=0.0,
+        value=UMBRAL_ALERTA_PREDETERMINADO,
+        step=25.0,
+        help="Un estilo aparece en alerta cuando sus litros combinados quedan por debajo de este valor.",
     )
 
-    st.sidebar.header("Actualizacion")
-    if st.sidebar.button("Actualizar datos desde Google Sheets"):
+    if st.sidebar.button("Actualizar datos desde Google Sheets", use_container_width=True):
         leer_hoja.clear()
         try:
             st.rerun()
@@ -840,7 +1782,6 @@ def main() -> None:
         errores.append(f"{HOJA_MOVIMIENTOS_LATAS}: {error_latas}")
     if error_inventario_latas:
         errores.append(f"{HOJA_INVENTARIO_LATAS}: {error_inventario_latas}")
-
     for error in errores:
         st.warning(f"No se pudo cargar {error}")
 
@@ -851,12 +1792,28 @@ def main() -> None:
     inventario_barriles = obtener_inventario_barriles_actual(df_barriles)
     despachos = construir_despachos(df_barriles, df_movimientos_latas)
 
+    fechas_disponibles = []
+    if not df_barriles.empty:
+        fechas_disponibles.append(df_barriles["Fecha"].max())
+    if not df_movimientos_latas.empty:
+        fechas_disponibles.append(df_movimientos_latas["Fecha"].max())
+    if fechas_disponibles:
+        ultima_fecha = max(fechas_disponibles)
+        if pd.notna(ultima_fecha):
+            st.sidebar.caption(
+                "\u00daltimo movimiento: " + ultima_fecha.strftime("%d/%m/%Y %H:%M")
+            )
+
     pestana_inventario, pestana_despachos = st.tabs(
-        ["Inventario actual", "Despachos y ventas"]
+        ["\U0001F4E6 Inventario actual", "\U0001F4CA Despachos y ventas"]
     )
 
     with pestana_inventario:
-        mostrar_inventario_actual(inventario_barriles, df_inventario_latas)
+        mostrar_inventario_actual(
+            inventario_barriles,
+            df_inventario_latas,
+            umbral_alerta,
+        )
 
     with pestana_despachos:
         mostrar_despachos(despachos)
@@ -864,7 +1821,7 @@ def main() -> None:
     st.markdown("---")
     st.caption(
         "Fuentes: DatosM, VLatas e InventarioLatasTR. "
-        f"Conversion usada: 1 lata = {LITROS_POR_LATA:.3f} L."
+        f"Conversi\u00f3n usada: 1 lata = {LITROS_POR_LATA:.3f} L."
     )
 
 
