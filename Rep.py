@@ -627,10 +627,8 @@ def mostrar_encabezado() -> None:
     st.markdown(
         """
         <div class="hero-castiza">
-            <h1>&#127866; Reporte de barriles y latas</h1>
+            <h1>&#127866; Reporte de barriles y Latas</h1>
             <p>
-                Inventario, despachos y litros equivalentes en un solo panel. Los datos se
-                leen directamente de Google Sheets y cada lata se convierte a 0,330 litros.
             </p>
             <span class="hero-chip">Inventario en tiempo real</span>
             <span class="hero-chip">Barriles + latas</span>
